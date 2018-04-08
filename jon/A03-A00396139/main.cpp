@@ -27,7 +27,9 @@ GLfloat camHVel = 0.0;
 GLfloat camVVel = 0.0;
 GLfloat camRotVel = 0.0;
 
-const GLfloat gridSize = 200.0f;
+const GLfloat gridSize = 100.0f;
+
+int planeId;
 
 GLfloat ambientLight0[]  = { 0.5, 0.5, 0.5 };
 GLfloat diffuseLight0[]  = { 1, 1, 1 };
@@ -64,27 +66,20 @@ typedef struct Point
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int initCessna()
-{
-	FILE *inFile = fopen("cessna.txt", "r"); // open the file
-	if (!inFile) return 1 + printf("error reading cessna.txt"); // report any issues, returning
-	char inStr[100]; // string buffer for line of text in file
-	int vIndex = 0, fIndex = 0; // vertex, face indices
 
-}
-
-GLuint loadModel(GLuint id, int colorScheme) {
+GLint loadCessna() {
 	//store the points in an array
 	Point points[6764];
+	//Point* points = malloc(sizeof(Point) * 6764);
 	//count the number of points and faces
 	int pointCount = 0;
 	int normalCount = 0;
 	int faceCount = 0;
 	int objectCount = 0;
 	//store the display list id for calling later.
-	id = glGenLists(1);
-	glNewList(id, GL_COMPILE);
-
+	planeId = glGenLists(1);
+	glNewList(planeId, GL_COMPILE);
+	
 	GLfloat diffuseMaterial[4] = { 0.0, 0.0, 0.0, 1.0 };
 	GLfloat ambientMaterial[4] = { 0.0, 0.0, 0.0, 1.0 };
 	GLfloat specularMaterial[4] = { 1.0, 1.0, 1.0, 1.0 };
@@ -92,11 +87,12 @@ GLuint loadModel(GLuint id, int colorScheme) {
 	FILE * file;
 	char objectName[256];
 	char line[256];
-	// open enterprise point/face data file
+	// open cessna txt file
 	file = fopen("cessna.txt", "rt");
 	if (file == NULL) {
-		printf("Could not load resource.\n");
-		return id;
+		printf("Could not load cessna.txt\n");
+		free(points);
+		return planeId;
 	}
 
 	//begin drawing triangles (stored in display list not actually drawn).
@@ -126,79 +122,72 @@ GLuint loadModel(GLuint id, int colorScheme) {
 			points[normalCount].nz = nz;
 			normalCount++;
 		}
-		else if ((info = sscanf(line, "g %s", objectName)) != 0) {
+		else if ((info = sscanf(line, "g %s", objectName)) != 0)
+		{
 			//printf("%d %s\n", found, objectName);
-			if (colorScheme == 1) {
-				if (objectCount <= 3) {
-					diffuseMaterial[0] = yellow[0];
-					diffuseMaterial[1] = yellow[1];
-					diffuseMaterial[2] = yellow[2];
-					diffuseMaterial[3] = yellow[3];
-				}
-				else if (objectCount >= 4 && objectCount <= 5) {
-					diffuseMaterial[0] = black[0];
-					diffuseMaterial[1] = black[1];
-					diffuseMaterial[2] = black[2];
-					diffuseMaterial[3] = black[3];
-				}
-				else if (objectCount == 6) {
-					diffuseMaterial[0] = purple[0];
-					diffuseMaterial[1] = purple[1];
-					diffuseMaterial[2] = purple[2];
-					diffuseMaterial[3] = purple[3];
-				}
-				else if (objectCount == 7) {
-					diffuseMaterial[0] = blue[0];
-					diffuseMaterial[1] = blue[1];
-					diffuseMaterial[2] = blue[2];
-					diffuseMaterial[3] = blue[3];
-				}
-				else if (objectCount >= 8 && objectCount <= 10) {
-					diffuseMaterial[0] = yellow[0];
-					diffuseMaterial[1] = yellow[1];
-					diffuseMaterial[2] = yellow[2];
-					diffuseMaterial[3] = yellow[3];
-				}
-				else if (objectCount == 11) {
-					diffuseMaterial[0] = black[0];
-					diffuseMaterial[1] = black[1];
-					diffuseMaterial[2] = black[2];
-					diffuseMaterial[3] = black[3];
-				}
-				else if (objectCount >= 12 && objectCount <= 13) {
-					diffuseMaterial[0] = yellow[0];
-					diffuseMaterial[1] = yellow[1];
-					diffuseMaterial[2] = yellow[2];
-					diffuseMaterial[3] = yellow[3];
-				}
-				else if (objectCount >= 14 && objectCount <= 25) {
-					diffuseMaterial[0] = blue[0];
-					diffuseMaterial[1] = blue[1];
-					diffuseMaterial[2] = blue[2];
-					diffuseMaterial[3] = blue[3];
-				}
-				else if (objectCount >= 26 && objectCount <= 31) {
-					diffuseMaterial[0] = yellow[0];
-					diffuseMaterial[1] = yellow[1];
-					diffuseMaterial[2] = yellow[2];
-					diffuseMaterial[3] = yellow[3];
-				}
+
+			if (objectCount <= 3) {
+				diffuseMaterial[0] = yellow[0];
+				diffuseMaterial[1] = yellow[1];
+				diffuseMaterial[2] = yellow[2];
+				diffuseMaterial[3] = yellow[3];
 			}
-			else {
-				if (objectCount == 0) {
-					diffuseMaterial[0] = yellow[0];
-					diffuseMaterial[1] = yellow[1];
-					diffuseMaterial[2] = yellow[2];
-					diffuseMaterial[3] = yellow[3];
-				}
-				else {
-					diffuseMaterial[0] = red[0];
-					diffuseMaterial[1] = red[1];
-					diffuseMaterial[2] = red[2];
-					diffuseMaterial[3] = red[3];
-				}
+			else if (objectCount >= 4 && objectCount <= 5)
+			{
+				diffuseMaterial[0] = black[0];
+				diffuseMaterial[1] = black[1];
+				diffuseMaterial[2] = black[2];
+				diffuseMaterial[3] = black[3];
 			}
-			objectCount++;
+			else if (objectCount == 6)
+			{
+				diffuseMaterial[0] = purple[0];
+				diffuseMaterial[1] = purple[1];
+				diffuseMaterial[2] = purple[2];
+				diffuseMaterial[3] = purple[3];
+			}
+			else if (objectCount == 7) {
+				diffuseMaterial[0] = blue[0];
+				diffuseMaterial[1] = blue[1];
+				diffuseMaterial[2] = blue[2];
+				diffuseMaterial[3] = blue[3];
+			}
+			else if (objectCount >= 8 && objectCount <= 10)
+			{
+				diffuseMaterial[0] = yellow[0];
+				diffuseMaterial[1] = yellow[1];
+				diffuseMaterial[2] = yellow[2];
+				diffuseMaterial[3] = yellow[3];
+			}
+			else if (objectCount == 11) {
+				diffuseMaterial[0] = black[0];
+				diffuseMaterial[1] = black[1];
+				diffuseMaterial[2] = black[2];
+				diffuseMaterial[3] = black[3];
+			}
+			else if (objectCount >= 12 && objectCount <= 13)
+			{
+				diffuseMaterial[0] = yellow[0];
+				diffuseMaterial[1] = yellow[1];
+				diffuseMaterial[2] = yellow[2];
+				diffuseMaterial[3] = yellow[3];
+			}
+			else if (objectCount >= 14 && objectCount <= 25)
+			{
+				diffuseMaterial[0] = blue[0];
+				diffuseMaterial[1] = blue[1];
+				diffuseMaterial[2] = blue[2];
+				diffuseMaterial[3] = blue[3];
+			}
+			else if (objectCount >= 26 && objectCount <= 31)
+			{
+				diffuseMaterial[0] = yellow[0];
+				diffuseMaterial[1] = yellow[1];
+			    diffuseMaterial[2] = yellow[2];
+			    diffuseMaterial[3] = yellow[3];
+		    }
+	
+		objectCount++;
 		}
 		else if ((info = sscanf(line, "%c ", &ch)) != 0 && ch == 'f') {
 			int f;
@@ -212,8 +201,7 @@ GLuint loadModel(GLuint id, int colorScheme) {
 			glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specularMaterial);
 			glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuseMaterial);
 			glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, none);
-			glColor4f(diffuseMaterial[0], diffuseMaterial[1],
-				diffuseMaterial[2], diffuseMaterial[3]);
+			glColor4f(diffuseMaterial[0], diffuseMaterial[1], diffuseMaterial[2], diffuseMaterial[3]);
 			glBegin(GL_POLYGON);
 
 			while (token != NULL) {
@@ -221,10 +209,8 @@ GLuint loadModel(GLuint id, int colorScheme) {
 				if (f != 0) {
 					//printf(" %d %f %f %f\n", f,points[f - 1].x, points[f - 1].y,
 					//		points[f - 1].z);
-					glNormal3f(points[f - 1].nx, points[f - 1].ny,
-						points[f - 1].nz);
-					glVertex3f(points[f - 1].x, points[f - 1].y,
-						points[f - 1].z);
+					glNormal3f(points[f - 1].nx, points[f - 1].ny, points[f - 1].nz);
+					glVertex3f(points[f - 1].x, points[f - 1].y, points[f - 1].z);
 				}
 				token = strtok(NULL, " ");
 			}
@@ -234,11 +220,11 @@ GLuint loadModel(GLuint id, int colorScheme) {
 	}
 
 	glEndList();
+
 	//close file
 	fclose(file);
-	//free list of points, not needed anymore (cached in display list)
-	free(points);
-	return id;
+
+	return planeId;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -274,9 +260,9 @@ void drawGrid()
 	float x, y, z;
 	y = -0.5f;
 	glBegin(GL_QUADS);
-	forEach(x, gridSize)
+	for(int x = -gridSize; x < gridSize; x++)
 	{
-		forEach(z, gridSize)
+		for (int z = -gridSize; z < gridSize; z++)
 		{
 			glColor3f(0.3, 0.3, 0.3);
 			glNormal3f(0, 1, 0);
@@ -299,6 +285,14 @@ void drawGrid()
 	glDisable(GL_COLOR_MATERIAL);
 }
 
+void drawPlane()
+{
+	glEnable(GL_COLOR_MATERIAL);
+	glColorMaterial(GL_FRONT, GL_DIFFUSE);
+	glCallList(planeId);
+	glDisable(GL_COLOR_MATERIAL);
+}
+
 void display(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -312,6 +306,7 @@ void display(void)
 
 	drawAxis();
 	drawGrid();
+	drawPlane();
 
 	glutSwapBuffers();
 }
@@ -404,7 +399,8 @@ int main(int argc, char **argv)
 	glEnable(GL_POLYGON_SMOOTH);
 	glMatrixMode(GL_MODELVIEW);
 	// init enterprise and randoms
-	initCessna();
+	loadCessna();
+	//initCessna();
 	// print controls
 	printf("\n\nScene controls\n----------------\n\n");
 	printf("r:\trings\n");
@@ -420,6 +416,5 @@ int main(int argc, char **argv)
 	printf("RIGHT:\tright\n");
 	printf("PG UP:\tforwards\n");
 	printf("PG DNs:\tbackwards\n");
-	// blast off
 	glutMainLoop();
 }
