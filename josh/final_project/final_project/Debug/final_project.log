@@ -1,0 +1,11 @@
+﻿  Source.cpp
+c:\users\joshua\desktop\education\computer science\csci4471\final_project\final_project\source.cpp(75): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
+c:\users\joshua\desktop\education\computer science\csci4471\final_project\final_project\source.cpp(76): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
+c:\users\joshua\desktop\education\computer science\csci4471\final_project\final_project\source.cpp(77): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
+c:\users\joshua\desktop\education\computer science\csci4471\final_project\final_project\source.cpp(88): warning C4305: '+=': truncation from 'double' to 'GLfloat'
+c:\users\joshua\desktop\education\computer science\csci4471\final_project\final_project\source.cpp(91): warning C4305: '-=': truncation from 'double' to 'GLfloat'
+c:\users\joshua\desktop\education\computer science\csci4471\final_project\final_project\source.cpp(94): warning C4305: '-=': truncation from 'double' to 'GLfloat'
+c:\users\joshua\desktop\education\computer science\csci4471\final_project\final_project\source.cpp(97): warning C4305: '+=': truncation from 'double' to 'GLfloat'
+c:\users\joshua\desktop\education\computer science\csci4471\final_project\final_project\source.cpp(100): warning C4305: '-=': truncation from 'double' to 'GLfloat'
+c:\users\joshua\desktop\education\computer science\csci4471\final_project\final_project\source.cpp(103): warning C4305: '+=': truncation from 'double' to 'GLfloat'
+  final_project.vcxproj -> C:\Users\Joshua\Desktop\Education\Computer Science\CSCI4471\final_project\Debug\final_project.exe
