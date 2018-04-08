@@ -16,6 +16,10 @@
 
 const GLfloat PI = 3.14159;
 
+int windowWidth = 640, windowHeight = 480;
+
+int mx, my;
+
 // Where the camera is, where it's looking, how high in Y it is, and what direction it's pointing in
 GLfloat camPos[] = { 10.0,10.0,20.0 };
 GLfloat camAt[] = { 0.0,0.0,0.0 };
@@ -29,7 +33,7 @@ GLfloat camRotVel = 0.0;
 
 const GLfloat gridSize = 100.0f;
 
-bool wireframe = false;
+bool wireframe = false, vMouseControl = false;
 
 GLfloat propTheta = 0;
 
@@ -430,10 +434,12 @@ void drawPlane()
 {
 	glPushMatrix();
 	// move to where the enterprise will be drawn; in front of the camera
-	glTranslatef(camPos[0] + (5 * sin(camAngle)), camAt[1] - 1, camPos[2] - (5 * cos(camAngle)));
+	glTranslatef(camPos[0] + (5 * sin(camAngle)), camAt[1] - .75 + 7.5 * camVVel, camPos[2] - (5 * cos(camAngle)));
 	glRotatef((180 / PI * -camAngle) - 90, 0, 1, 0); // orient the cessna to face away from the camera
+	glTranslatef(-150 * camHVel, 0, -50 * camRotVel);
 	glRotatef(-7500 * camRotVel, 1, 0, 0); // banking
-	glRotatef(-500 * camVVel, 0, 0, 1); // up/ down
+	glRotatef(-600 * camVVel, 0, 0, 1); // up/ down
+	
 	glEnable(GL_COLOR_MATERIAL);
 	glColorMaterial(GL_FRONT, GL_DIFFUSE);
 	glCallList(planeId);
@@ -474,28 +480,26 @@ void key(unsigned char key, int x, int y)
 			wireframe = !wireframe;
 			glPolygonMode(GL_FRONT, wireframe ? GL_LINE : GL_FILL);
 			break;
+		case 'v':
+			vMouseControl = !vMouseControl;
 	}
 }
 
 void sKey(int key, int x, int y)
 {
 	// add to or subtract from velocities and ensure they don't exceed bounds
-	if (key == GLUT_KEY_LEFT) camRotVel -= .0001;
-	if (key == GLUT_KEY_RIGHT) camRotVel += .0001;
+	//if (key == GLUT_KEY_LEFT) camRotVel -= .0001;
+	//if (key == GLUT_KEY_RIGHT) camRotVel += .0001;
 	if (key == GLUT_KEY_DOWN) camVVel -= .0005;
 	if (key == GLUT_KEY_UP) camVVel += .0005;
 	if (key == GLUT_KEY_PAGE_DOWN) camHVel -= 0.0002;
 	if (key == GLUT_KEY_PAGE_UP) camHVel += 0.0002;
 
-	if (camHVel > 0.2) camHVel = 0.2;
-	else if (camHVel < 0.002) camHVel = 0.002;
-
-	if (camRotVel > 0.005 + 0.000005 / camHVel) camRotVel = 0.005 + 0.000005 / camHVel;
-	else if (camRotVel < -0.005 - 0.000005 / camHVel) camRotVel = -0.005 - 0.000005 / camHVel;
-
-	if (camVVel > .07) camVVel = .07;
-	else if (camVVel < -.07) camVVel = -.07;
+	if (camHVel > 0.015) camHVel = 0.015;
+	else if (camHVel < 0.0015) camHVel = 0.0015;
 }
+
+void pMouse(int x, int y){ mx = x, my = y; }
 
 void myReshape(int w, int h)
 {
@@ -504,6 +508,7 @@ void myReshape(int w, int h)
 	glLoadIdentity();
 	gluPerspective(60, (float)w / (float)h, 1, 10000);
 	glMatrixMode(GL_MODELVIEW);
+	windowWidth = w, windowHeight = w;
 }
 
 void idle()
@@ -521,6 +526,17 @@ void idle()
 	camAt[1] = camHeight;
 	camAt[2] = camPos[2] - (10 * cos(camAngle));
 
+	camVVel *= 0.998;
+
+	camRotVel = -(GLfloat)(windowWidth / 2 - mx) / 100000;
+	if(vMouseControl) camVVel = (GLfloat)(windowHeight / 3 - my) / 10000;
+
+	if (camRotVel > 0.002 + 0.00001 / camHVel) camRotVel = 0.002 + 0.00001 / camHVel;
+	else if (camRotVel < -0.002 - 0.00001 / camHVel) camRotVel = -0.002 - 0.00001 / camHVel;
+
+	if (camVVel > .07) camVVel = .07;
+	else if (camVVel < -.07) camVVel = -.07;
+
 	propTheta += 3456 * camHVel;
 
 	if (propTheta >= 360) propTheta = 0;
@@ -533,7 +549,7 @@ int main(int argc, char **argv)
 	glutInit(&argc, argv);
 
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
-	glutInitWindowSize(640, 480);
+	glutInitWindowSize(windowWidth, windowHeight);
 	glutCreateWindow("A00396139 A03");
 	// set CBs
 	glutReshapeFunc(myReshape);
@@ -541,6 +557,7 @@ int main(int argc, char **argv)
 	glutIdleFunc(idle);
 	glutKeyboardFunc(key);
 	glutSpecialFunc(sKey);
+	glutPassiveMotionFunc(pMouse);
 	// init params
 	glEnable(GL_DEPTH_TEST); /* Enable hidden--surface--removal */
 	glClearColor(0.0, 0.0, 0.0, 1.0);
@@ -569,6 +586,6 @@ int main(int argc, char **argv)
 	printf("LEFT:\tleft\n");
 	printf("RIGHT:\tright\n");
 	printf("PG UP:\tforwards\n");
-	printf("PG DNs:\tbackwards\n");
+	printf("PG DN:\tbackwards\n");
 	glutMainLoop();
 }
