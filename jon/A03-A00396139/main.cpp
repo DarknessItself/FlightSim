@@ -29,6 +29,8 @@ GLfloat camRotVel = 0.0;
 
 const GLfloat gridSize = 100.0f;
 
+bool wireframe = false;
+
 int planeId;
 
 GLfloat ambientLight0[]  = { 0.5, 0.5, 0.5 };
@@ -287,10 +289,17 @@ void drawGrid()
 
 void drawPlane()
 {
+	glPushMatrix();
+	// move to where the enterprise will be drawn; in front of the camera
+	glTranslatef(camPos[0] + (5 * sin(camAngle)), camAt[1] - 1, camPos[2] - (5 * cos(camAngle)));
+	glRotatef((180 / PI * -camAngle) - 90, 0, 1, 0); // orient the cessna to face away from the camera
+	glRotatef(-7500 * camRotVel, 1, 0, 0); // banking
+	glRotatef(-500 * camVVel, 0, 0, 1); // up/ down
 	glEnable(GL_COLOR_MATERIAL);
 	glColorMaterial(GL_FRONT, GL_DIFFUSE);
 	glCallList(planeId);
 	glDisable(GL_COLOR_MATERIAL);
+	glPopMatrix();
 }
 
 void display(void)
@@ -321,8 +330,9 @@ void key(unsigned char key, int x, int y)
 {
 	switch (key)
 	{
-	case 's':
-		//dostuff.exe
+	case 'w':
+		wireframe = !wireframe;
+		glPolygonMode(GL_FRONT, wireframe ? GL_LINE : GL_FILL);
 		break;
 	}
 }
@@ -332,19 +342,19 @@ void sKey(int key, int x, int y)
 	// add to or subtract from velocities and ensure they don't exceed bounds
 	if (key == GLUT_KEY_LEFT) camRotVel -= .00005;
 	if (key == GLUT_KEY_RIGHT) camRotVel += .00005;
-	if (key == GLUT_KEY_DOWN) camVVel -= .002;
-	if (key == GLUT_KEY_UP) camVVel += .002;
+	if (key == GLUT_KEY_DOWN) camVVel -= .0005;
+	if (key == GLUT_KEY_UP) camVVel += .0005;
 	if (key == GLUT_KEY_PAGE_DOWN) camHVel -= 0.0002;
 	if (key == GLUT_KEY_PAGE_UP) camHVel += 0.0002;
 
 	if (camHVel > 0.2) camHVel = 0.2;
-	else if (camHVel < 0) camHVel = 0;
+	else if (camHVel < 0.002) camHVel = 0.002;
 
-	if (camRotVel > 0.03) camRotVel = 0.03;
-	else if (camRotVel < -0.03) camRotVel = -0.03;
+	if (camRotVel > 0.003) camRotVel = 0.003;
+	else if (camRotVel < -0.003) camRotVel = -0.003;
 
-	if (camVVel > 1) camVVel = 1;
-	else if (camVVel < -1) camVVel = -1;
+	if (camVVel > .03) camVVel = .03;
+	else if (camVVel < -.03) camVVel = -.03;
 }
 
 void myReshape(int w, int h)
