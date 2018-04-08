@@ -1,15 +1,33 @@
-﻿main.obj : error LNK2019: unresolved external symbol __imp_glutInitWindowSize referenced in function main
-main.obj : error LNK2019: unresolved external symbol __imp_glutInitDisplayMode referenced in function main
-main.obj : error LNK2019: unresolved external symbol __imp_glutMainLoop referenced in function main
-main.obj : error LNK2019: unresolved external symbol __imp_glutPostRedisplay referenced in function "void __cdecl idle(void)" (?idle@@YAXXZ)
-main.obj : error LNK2019: unresolved external symbol __imp_glutSwapBuffers referenced in function "void __cdecl display(void)" (?display@@YAXXZ)
-main.obj : error LNK2019: unresolved external symbol __imp_glutIdleFunc referenced in function main
-main.obj : error LNK2019: unresolved external symbol __imp_glutKeyboardFunc referenced in function main
-main.obj : error LNK2019: unresolved external symbol __imp_glutSpecialFunc referenced in function main
-main.obj : error LNK2019: unresolved external symbol __imp_glutReshapeFunc referenced in function main
-main.obj : error LNK2019: unresolved external symbol __imp_glutDisplayFunc referenced in function main
-main.obj : error LNK2019: unresolved external symbol __imp_glutSolidSphere referenced in function "void __cdecl drawMoon(void)" (?drawMoon@@YAXXZ)
-main.obj : error LNK2019: unresolved external symbol __imp___glutInitWithExit referenced in function glutInit_ATEXIT_HACK
-main.obj : error LNK2019: unresolved external symbol __imp___glutCreateWindowWithExit referenced in function glutCreateWindow_ATEXIT_HACK
-C:\freeglut\lib\freeglut.lib : warning LNK4272: library machine type 'x86' conflicts with target machine type 'x64'
-C:\Users\s7145103\flightsim\FlightSim\jon\x64\Debug\A03-A00396139.exe : fatal error LNK1120: 13 unresolved externals
+﻿  main.cpp
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(17): warning C4305: 'initializing': truncation from 'double' to 'GLfloat'
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(35): warning C4838: conversion from 'double' to 'GLfloat' requires a narrowing conversion
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(35): warning C4305: 'initializing': truncation from 'double' to 'GLfloat'
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(45): warning C4838: conversion from 'double' to 'GLfloat' requires a narrowing conversion
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(45): warning C4305: 'initializing': truncation from 'double' to 'GLfloat'
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(47): warning C4838: conversion from 'double' to 'GLfloat' requires a narrowing conversion
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(47): warning C4305: 'initializing': truncation from 'double' to 'GLfloat'
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(48): warning C4838: conversion from 'double' to 'GLfloat' requires a narrowing conversion
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(48): warning C4305: 'initializing': truncation from 'double' to 'GLfloat'
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(51): warning C4838: conversion from 'double' to 'GLfloat' requires a narrowing conversion
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(51): warning C4305: 'initializing': truncation from 'double' to 'GLfloat'
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(52): warning C4838: conversion from 'double' to 'GLfloat' requires a narrowing conversion
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(52): warning C4305: 'initializing': truncation from 'double' to 'GLfloat'
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(71): warning C4101: 'inStr': unreferenced local variable
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(281): warning C4305: 'argument': truncation from 'double' to 'GLfloat'
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(285): warning C4244: 'argument': conversion from 'int' to 'GLfloat', possible loss of data
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(288): warning C4244: 'argument': conversion from 'int' to 'GLfloat', possible loss of data
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(291): warning C4244: 'argument': conversion from 'int' to 'GLfloat', possible loss of data
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(294): warning C4244: 'argument': conversion from 'int' to 'GLfloat', possible loss of data
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(274): warning C4101: 'z': unreferenced local variable
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(274): warning C4101: 'x': unreferenced local variable
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(338): warning C4305: '-=': truncation from 'double' to 'GLfloat'
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(339): warning C4305: '+=': truncation from 'double' to 'GLfloat'
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(340): warning C4305: '-=': truncation from 'double' to 'GLfloat'
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(341): warning C4305: '+=': truncation from 'double' to 'GLfloat'
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(342): warning C4305: '-=': truncation from 'double' to 'GLfloat'
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(343): warning C4305: '+=': truncation from 'double' to 'GLfloat'
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(345): warning C4305: '=': truncation from 'double' to 'GLfloat'
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(348): warning C4305: '=': truncation from 'double' to 'GLfloat'
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(349): warning C4305: '=': truncation from 'double' to 'GLfloat'
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(74): warning C4715: 'initCessna': not all control paths return a value
+  A03-A00396139.vcxproj -> C:\Users\s7145103\flightsim\FlightSim\jon\x64\Debug\A03-A00396139.exe
