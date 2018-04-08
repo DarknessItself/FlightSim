@@ -23,7 +23,7 @@ GLfloat camHeight = 10.0;
 GLfloat camAngle = -PI / 4;
 
 // Camera's velocity in XZ (trans.), Y, and XY (rot.)
-GLfloat camHVel = 0.0;
+GLfloat camHVel = 0.002;
 GLfloat camVVel = 0.0;
 GLfloat camRotVel = 0.0;
 
@@ -31,7 +31,9 @@ const GLfloat gridSize = 100.0f;
 
 bool wireframe = false;
 
-int planeId;
+GLfloat propTheta = 0;
+
+int planeId, propId;
 
 GLfloat ambientLight0[]  = { 0.5, 0.5, 0.5 };
 GLfloat diffuseLight0[]  = { 1, 1, 1 };
@@ -93,7 +95,6 @@ GLint loadCessna() {
 	file = fopen("cessna.txt", "rt");
 	if (file == NULL) {
 		printf("Could not load cessna.txt\n");
-		free(points);
 		return planeId;
 	}
 
@@ -229,6 +230,123 @@ GLint loadCessna() {
 	return planeId;
 }
 
+
+GLint loadProps()
+{
+	//store the points in an array
+	Point points[6764];
+	//Point* points = malloc(sizeof(Point) * 6764);
+	//count the number of points and faces
+	int pointCount = 0;
+	int normalCount = 0;
+	int faceCount = 0;
+	int objectCount = 0;
+	//store the display list id for calling later.
+	propId = glGenLists(1);
+	glNewList(propId, GL_COMPILE);
+
+	GLfloat diffuseMaterial[4] = { 0.0, 0.0, 0.0, 1.0 };
+	GLfloat ambientMaterial[4] = { 0.0, 0.0, 0.0, 1.0 };
+	GLfloat specularMaterial[4] = { 1.0, 1.0, 1.0, 1.0 };
+
+	FILE * file;
+	char objectName[256];
+	char line[256];
+	// open cessna txt file
+	file = fopen("propeller.txt", "rt");
+	if (file == NULL)
+	{
+		printf("Could not load cessna.txt\n");
+		return propId;
+	}
+
+	//begin drawing triangles (stored in display list not actually drawn).
+
+	//read line by line, assuming less than 256 characters
+	while (fgets(line, 256, file) != NULL)
+	{
+		float x;
+		float y;
+		float z;
+		float nx;
+		float ny;
+		float nz;
+		char ch;
+		// start by looking for info about vertices
+		int info = sscanf(line, "v %f %f %f", &x, &y, &z);
+		// if vertex info found
+		if (info != 0) {
+			// create and store point
+			Point point = { x, y, z };
+			points[pointCount] = point;
+			pointCount++;
+		}
+		else if ((info = sscanf(line, "n %f %f %f", &nx, &ny, &nz)) != 0) {
+			// add the normal data to the right point
+			points[normalCount].nx = nx;
+			points[normalCount].ny = ny;
+			points[normalCount].nz = nz;
+			normalCount++;
+		}
+		else if ((info = sscanf(line, "g %s", objectName)) != 0)
+		{
+			//printf("%d %s\n", found, objectName);
+
+			if (objectCount == 0) {
+				diffuseMaterial[0] = yellow[0];
+				diffuseMaterial[1] = yellow[1];
+				diffuseMaterial[2] = yellow[2];
+				diffuseMaterial[3] = yellow[3];
+			}
+			else {
+				diffuseMaterial[0] = red[0];
+				diffuseMaterial[1] = red[1];
+				diffuseMaterial[2] = red[2];
+				diffuseMaterial[3] = red[3];
+			}
+
+			objectCount++;
+		}
+		else if ((info = sscanf(line, "%c ", &ch)) != 0 && ch == 'f') {
+			int f;
+			//printf("char %c\n", ch);
+			char *token;
+			token = strtok(line, " ");
+			ambientMaterial[0] = diffuseMaterial[0] * 0.2f;
+			ambientMaterial[1] = diffuseMaterial[1] * 0.2f;
+			ambientMaterial[2] = diffuseMaterial[2] * 0.2f;
+			glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, ambientMaterial);
+			glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specularMaterial);
+			glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuseMaterial);
+			glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, none);
+			glColor4f(diffuseMaterial[0], diffuseMaterial[1], diffuseMaterial[2], diffuseMaterial[3]);
+			glBegin(GL_POLYGON);
+
+			while (token != NULL) {
+				f = atoi(token);
+				if (f != 0) {
+					//printf(" %d %f %f %f\n", f,points[f - 1].x, points[f - 1].y,
+					//		points[f - 1].z);
+					glNormal3f(points[f - 1].nx, points[f - 1].ny, points[f - 1].nz);
+					glVertex3f(points[f - 1].x, points[f - 1].y, points[f - 1].z);
+				}
+				token = strtok(NULL, " ");
+			}
+			faceCount++;
+			glEnd();
+		}
+	}
+
+	glEndList();
+
+	//close file
+	fclose(file);
+
+	return propId;
+}
+
+
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void drawAxis()
@@ -287,6 +405,27 @@ void drawGrid()
 	glDisable(GL_COLOR_MATERIAL);
 }
 
+void drawProps()
+{
+	glEnable(GL_COLOR_MATERIAL);
+	// set material properties which will be assigned by glColor
+	glColorMaterial(GL_FRONT, GL_DIFFUSE);
+	
+	glPushMatrix();
+	glTranslatef(-0.01f, -0.14f, 0.35f);
+	glRotatef(propTheta, 1, 0, 0);
+	glTranslatef(0, 0.15f, -0.35f);
+	glCallList(propId);
+	glPopMatrix();
+	glPushMatrix();
+	glTranslatef(-0.01f, -0.14f, -0.35f);
+    glRotatef(propTheta, 1, 0, 0);
+	glTranslatef(0, 0.15f, -0.35f);
+	glCallList(propId);
+	glPopMatrix();
+	glDisable(GL_COLOR_MATERIAL);
+}
+
 void drawPlane()
 {
 	glPushMatrix();
@@ -299,6 +438,7 @@ void drawPlane()
 	glColorMaterial(GL_FRONT, GL_DIFFUSE);
 	glCallList(planeId);
 	glDisable(GL_COLOR_MATERIAL);
+	drawProps();
 	glPopMatrix();
 }
 
@@ -330,18 +470,18 @@ void key(unsigned char key, int x, int y)
 {
 	switch (key)
 	{
-	case 'w':
-		wireframe = !wireframe;
-		glPolygonMode(GL_FRONT, wireframe ? GL_LINE : GL_FILL);
-		break;
+		case 'w':
+			wireframe = !wireframe;
+			glPolygonMode(GL_FRONT, wireframe ? GL_LINE : GL_FILL);
+			break;
 	}
 }
 
 void sKey(int key, int x, int y)
 {
 	// add to or subtract from velocities and ensure they don't exceed bounds
-	if (key == GLUT_KEY_LEFT) camRotVel -= .00005;
-	if (key == GLUT_KEY_RIGHT) camRotVel += .00005;
+	if (key == GLUT_KEY_LEFT) camRotVel -= .0001;
+	if (key == GLUT_KEY_RIGHT) camRotVel += .0001;
 	if (key == GLUT_KEY_DOWN) camVVel -= .0005;
 	if (key == GLUT_KEY_UP) camVVel += .0005;
 	if (key == GLUT_KEY_PAGE_DOWN) camHVel -= 0.0002;
@@ -350,11 +490,11 @@ void sKey(int key, int x, int y)
 	if (camHVel > 0.2) camHVel = 0.2;
 	else if (camHVel < 0.002) camHVel = 0.002;
 
-	if (camRotVel > 0.003) camRotVel = 0.003;
-	else if (camRotVel < -0.003) camRotVel = -0.003;
+	if (camRotVel > 0.005 + 0.000005 / camHVel) camRotVel = 0.005 + 0.000005 / camHVel;
+	else if (camRotVel < -0.005 - 0.000005 / camHVel) camRotVel = -0.005 - 0.000005 / camHVel;
 
-	if (camVVel > .03) camVVel = .03;
-	else if (camVVel < -.03) camVVel = -.03;
+	if (camVVel > .07) camVVel = .07;
+	else if (camVVel < -.07) camVVel = -.07;
 }
 
 void myReshape(int w, int h)
@@ -381,6 +521,10 @@ void idle()
 	camAt[1] = camHeight;
 	camAt[2] = camPos[2] - (10 * cos(camAngle));
 
+	propTheta += 3456 * camHVel;
+
+	if (propTheta >= 360) propTheta = 0;
+
 	glutPostRedisplay();
 }
 
@@ -400,7 +544,7 @@ int main(int argc, char **argv)
 	// init params
 	glEnable(GL_DEPTH_TEST); /* Enable hidden--surface--removal */
 	glClearColor(0.0, 0.0, 0.0, 1.0);
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	gluPerspective(45, 640.0 / 480.0, 1, 10000);
@@ -410,7 +554,7 @@ int main(int argc, char **argv)
 	glMatrixMode(GL_MODELVIEW);
 	// init enterprise and randoms
 	loadCessna();
-	//initCessna();
+	loadProps();
 	// print controls
 	printf("\n\nScene controls\n----------------\n\n");
 	printf("r:\trings\n");
