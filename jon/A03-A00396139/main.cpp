@@ -1,8 +1,5 @@
 //main.cpp
 
-// Extra feature: press g to turn the sun into a red giant (also added cruise control (speeds don't decrease when keys
-// released), tilting spaceship, rings around saturn, a rather fancy shield, better star twinkling, and various other improvements)
-
 #pragma warning(disable:4996) // allow use of unsafe methods fscanf and sscanf
 
 #include <stdio.h>
@@ -33,13 +30,15 @@ GLfloat camRotVel = 0.0;
 
 const GLfloat gridSize = 100.0f;
 
-bool wireframe = false, vMouseControl = false;
+bool wireframe = false, vMouseControl = false, gridMode = false;
 
 GLfloat propTheta = 0;
 
 int planeId, propId;
 
-GLfloat ambientLight0[]  = { 0.5, 0.5, 0.5 };
+GLUquadricObj *skyObj = gluNewQuadric();
+
+GLfloat ambientLight0[]  = { 0.75, 0.75, 0.75 };
 GLfloat diffuseLight0[]  = { 1, 1, 1 };
 GLfloat specularLight0[] = { 1, 1, 1 };
 GLfloat lightPosition0[] = { 0, 0.3, -1, 0 };
@@ -73,7 +72,6 @@ typedef struct Point
 } Point;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 GLint loadCessna() {
 	//store the points in an array
@@ -234,7 +232,6 @@ GLint loadCessna() {
 	return planeId;
 }
 
-
 GLint loadProps()
 {
 	//store the points in an array
@@ -349,7 +346,42 @@ GLint loadProps()
 	return propId;
 }
 
+void initSun()
+{
 
+	// Set lighting values, self explanatory
+	glLightfv(GL_LIGHT0, GL_AMBIENT, ambientLight0);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuseLight0);
+	glLightfv(GL_LIGHT0, GL_SPECULAR, specularLight0);
+	glLightfv(GL_LIGHT0, GL_POSITION, lightPosition0);
+
+	glShadeModel(GL_SMOOTH);
+	// Enable lighting
+	glEnable(GL_LIGHTING);
+	glEnable(GL_LIGHT0);
+
+	GLfloat diffuseMaterial[4] = { 0.0, 0.0, 0.0, 1.0 };
+	GLfloat ambientMaterial[4] = { 0.0, 0.0, 0.0, 1.0 };
+	GLfloat specularMaterial[4] = { 0.5, 0.5, 0.5, 1.0 };
+	GLfloat emissiveMaterial[4] = { 0.0, 0.0, 0.0, 1.0 };
+	GLfloat mShininess[] = { 1 };
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specularMaterial);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, mShininess);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuseMaterial);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emissiveMaterial);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, ambientMaterial);
+}
+
+void initSky()
+{
+	//skyObj = gluNewQuadric();
+	//skyId = glGenLists(4);
+	gluQuadricNormals(skyObj, GLU_SMOOTH);
+	gluQuadricTexture(skyObj, GL_TRUE);
+	//texture the sky
+	//glBindTexture(GL_TEXTURE_2D, skyTexture);
+	//gluQuadricTexture(skyObj, skyTexture);
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -409,6 +441,25 @@ void drawGrid()
 	glDisable(GL_COLOR_MATERIAL);
 }
 
+void drawSky()
+{
+	glTranslatef(0, (200) - 2.0f, 0);
+	glRotatef(90, 1, 0, 0);
+
+	GLfloat diffuseMaterial[4] = { 0.0, 0.0, 0.0, 1.0 };
+	GLfloat ambientMaterial[4] = { 1.0, 1.0, 1.0, 1.0 };
+	GLfloat mShininess[] = { 50 };
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, mShininess);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuseMaterial);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, ambientMaterial);
+	gluCylinder(skyObj, 200, 200, 200 * 2, 100, 100);
+
+	glRotatef(-180, 0, 1, 0);
+
+	glScalef(1.01, 1, 1.01);
+	gluCylinder(skyObj, 200, 200, (200 * 1.9f), 100, 100);
+}
+
 void drawProps()
 {
 	glEnable(GL_COLOR_MATERIAL);
@@ -448,6 +499,7 @@ void drawPlane()
 	glPopMatrix();
 }
 
+
 void display(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -459,8 +511,18 @@ void display(void)
 		camAt[0], camAt[1], camAt[2],
 		0, 1, 0);
 
-	drawAxis();
-	drawGrid();
+	initSun();
+
+	if (gridMode)
+	{
+		drawAxis();
+		drawGrid();
+	}
+	else
+	{
+		//
+	}
+
 	drawPlane();
 
 	glutSwapBuffers();
@@ -482,6 +544,11 @@ void key(unsigned char key, int x, int y)
 			break;
 		case 'v':
 			vMouseControl = !vMouseControl;
+			break;
+		case 's':
+			gridMode = !gridMode;
+			break;
+
 	}
 }
 
@@ -572,6 +639,7 @@ int main(int argc, char **argv)
 	// init enterprise and randoms
 	loadCessna();
 	loadProps();
+	initSun();
 	// print controls
 	printf("\n\nScene controls\n----------------\n\n");
 	printf("r:\trings\n");
