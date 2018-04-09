@@ -39,6 +39,7 @@ GLfloat propTheta = 0;
 int planeId, propId;
 
 GLUquadricObj *skyObj = gluNewQuadric();
+GLUquadricObj *seaObj = gluNewQuadric();
 
 GLfloat ambientLight0[]  = { 0.75, 0.75, 0.75 };
 GLfloat diffuseLight0[]  = { 1, 1, 1 };
@@ -376,15 +377,17 @@ void initSun()
 
 void initSky()
 {
-	//skyObj = gluNewQuadric();
-	//skyId = glGenLists(4);
 	gluQuadricNormals(skyObj, GLU_SMOOTH);
 	gluQuadricTexture(skyObj, GL_TRUE);
-	//texture the sky
-	//glBindTexture(GL_TEXTURE_2D, skyTexture);
-	//gluQuadricTexture(skyObj, skyTexture);
 }
 
+void initSea()
+{
+	gluQuadricNormals(seaObj, GLU_SMOOTH);
+	gluQuadricTexture(seaObj, GL_TRUE);
+}
+
+// largely taken from example 
 void loadTexture(const char * filename, GLuint * ID)
 {
 	int imageWidth, imageHeight;
@@ -429,37 +432,12 @@ void loadTexture(const char * filename, GLuint * ID)
 
 	glEnable(GL_TEXTURE_2D);
 
-	/*
-	GLubyte ***texture = new GLubyte**[imageWidth];
-	forEach(w, imageWidth)
-	{
-		texture[w] = new GLubyte*[imageHeight];
-		forEach(h, imageHeight)
-		{
-			texture[w][h] = new GLubyte[3];
-		}
-	}
-	*/
-
 	GLubyte *texture = (GLubyte *)malloc(3 * imageWidth * imageHeight * sizeof(GLubyte));
 
 	// if the maxValue is 255 carry on, otherwise report that we only support max value of 255
-	int r, g, b;
 	int c;
 	if(maxValue == 255)
 	{
-		/*
-		forEach(u, imageWidth)
-		{
-			forEach(v, imageHeight)
-			{
-				fscanf(fileID, "%d %d %d", &r, &g, &b);
-				texture[u][v][0] = (GLubyte) r;
-				texture[u][v][1] = (GLubyte) g;
-				texture[u][v][2] = (GLubyte) b;
-			}
-		}
-		*/
 		forEach(b, 3 * imageWidth * imageHeight)
 		{
 			fscanf(fileID, "%d", &c);
@@ -471,23 +449,14 @@ void loadTexture(const char * filename, GLuint * ID)
 	// close the image file
 	fclose(fileID);
 
-	// generate texture id
 	glGenTextures(1, ID);
-	// bind the texture
 	glBindTexture(GL_TEXTURE_2D, *ID);
-	//configuration
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	
-
-	// tell openGL how to scale the texture image up if needed
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	// tell openGL how to scale the texture image down if needed
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
 	// build 2d mipmaps
 	gluBuild2DMipmaps(GL_TEXTURE_2D, 3, imageWidth, imageHeight, GL_RGB, GL_UNSIGNED_BYTE, texture);
@@ -553,7 +522,7 @@ void drawGrid()
 
 void drawSky()
 {
-	glTranslatef(0, (200) - 2.0f, 0);
+	glTranslatef(0, 990, 0);
 	glRotatef(90, 1, 0, 0);
 
 	GLfloat diffuseMaterial[4] = { 0.0, 0.0, 0.0, 1.0 };
@@ -562,12 +531,26 @@ void drawSky()
 	glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, mShininess);
 	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuseMaterial);
 	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, ambientMaterial);
-	gluCylinder(skyObj, 200, 200, 200 * 2, 100, 100);
+	gluCylinder(skyObj, 500, 500, 500 * 2, 100, 100);
 
 	glRotatef(-180, 0, 1, 0);
 
 	glScalef(1.01, 1, 1.01);
-	gluCylinder(skyObj, 200, 200, (200 * 1.9f), 100, 100);
+	gluCylinder(skyObj, 500, 500, 500, 100, 100);
+}
+
+void drawSea()
+{
+	gluQuadricNormals(seaObj, GLU_SMOOTH);
+	gluQuadricTexture(seaObj, GL_TRUE);
+	glBindTexture(GL_TEXTURE_2D, seaTexture);
+	gluQuadricTexture(seaObj, seaTexture);
+
+	glRotatef(270, 1, 0, 0);
+	glColor4f(0.0, 0.0, 0.6, 1.0);
+	GLfloat ambientMaterial[4] = { 0.2, 0.2, 0.4, 1.0 };
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, ambientMaterial);
+	gluDisk(seaObj, 0, 510, 64, 64);
 }
 
 void drawProps()
@@ -622,17 +605,51 @@ void display(void)
 		camAt[0], camAt[1], camAt[2],
 		0, 1, 0);
 
-	initSun();
 
 	if (gridMode)
 	{
+		glDisable(GL_TEXTURE_2D);
+		glDisable(GL_LIGHTING);
 		drawAxis();
 		drawGrid();
-	}
+		glEnable(GL_LIGHTING);
+		glEnable(GL_TEXTURE_2D);
+    }
 	else
 	{
-		//
+		glEnable(GL_TEXTURE_2D);
+		glPushMatrix();
+		glTranslatef(0, -1, 0);
+		gluQuadricNormals(seaObj, GLU_SMOOTH);
+		gluQuadricTexture(seaObj, GL_TRUE);
+		glBindTexture(GL_TEXTURE_2D, seaTexture);
+		gluQuadricTexture(seaObj, seaTexture);
+		glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, shiny);
+		glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, none);
+
+		drawSea();
+
+		glPopMatrix();
+
+		glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, dull);
+		glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, black);
+		glPushMatrix();
+		gluQuadricNormals(skyObj, GLU_SMOOTH);
+		gluQuadricTexture(skyObj, GL_TRUE);
+		glBindTexture(GL_TEXTURE_2D, skyTexture);
+		gluQuadricTexture(skyObj, skyTexture);
+		//glDisable(GL_CULL_FACE);
+		glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, shiny);
+		glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, yellow);
+		drawSky();
+		//glEnable(GL_CULL_FACE);
+		glPopMatrix();
 	}
+	initSun();
+	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, white);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, littleshiny);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, black);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, littlespecular);
 
 	drawPlane();
 
