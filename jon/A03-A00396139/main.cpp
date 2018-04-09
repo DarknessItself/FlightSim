@@ -26,13 +26,16 @@ GLfloat camHeight = 10.0;
 GLfloat camAngle = -PI / 4;
 
 // Camera's velocity in XZ (trans.), Y, and XY (rot.)
-GLfloat camHVel = 0.002;
+GLfloat camHVel = 0.003;
 GLfloat camVVel = 0.0;
 GLfloat camRotVel = 0.0;
 
 const GLfloat gridSize = 100.0f;
 
-bool wireframe = false, vMouseControl = false, gridMode = false;
+bool wireframe     = false,
+     vMouseControl = false,
+	 gridMode      = false,
+	 fog           = true;
 
 GLfloat propTheta = 0;
 
@@ -41,14 +44,16 @@ int planeId, propId;
 GLUquadricObj *skyObj = gluNewQuadric();
 GLUquadricObj *seaObj = gluNewQuadric();
 
-GLfloat ambientLight0[]  = { 0.75, 0.75, 0.75 };
-GLfloat diffuseLight0[]  = { 1, 1, 1 };
-GLfloat specularLight0[] = { 1, 1, 1 };
-GLfloat lightPosition0[] = { 0, 0.3, -1, 0 };
-GLfloat none[]			 = { 0,0,0,0 };
-GLfloat dull[]		     = { 1 };
-GLfloat littleshiny[]    = { 10 };
-GLfloat shiny[]		     = { 50 };
+GLfloat sunAmbient[]  = { 0.75, 0.75, 0.75 };
+GLfloat sunDiffuse[]  = { 1, 1, 1 };
+GLfloat sunSpecular[] = { 1, 1, 1 };
+GLfloat sunPos[]      = { 300, 1500, 0, 1.0 };
+
+// zero-vector used when we want to turn something off
+GLfloat none[] = { 0,0,0,0 };
+
+GLfloat fogColor[4] = { 0.8, 0.6, 0.7, 0.25 };
+
 
 typedef GLfloat colour[4];
 
@@ -353,19 +358,19 @@ void initSun()
 {
 
 	// Set lighting values, self explanatory
-	glLightfv(GL_LIGHT0, GL_AMBIENT, ambientLight0);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuseLight0);
-	glLightfv(GL_LIGHT0, GL_SPECULAR, specularLight0);
-	glLightfv(GL_LIGHT0, GL_POSITION, lightPosition0);
+	glLightfv(GL_LIGHT0, GL_AMBIENT, sunAmbient);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, sunDiffuse);
+	glLightfv(GL_LIGHT0, GL_SPECULAR, sunSpecular);
+	glLightfv(GL_LIGHT0, GL_POSITION, sunPos);
 
 	glShadeModel(GL_SMOOTH);
 	// Enable lighting
 	glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT0);
-
-	GLfloat diffuseMaterial[4] = { 0.0, 0.0, 0.0, 1.0 };
-	GLfloat ambientMaterial[4] = { 0.0, 0.0, 0.0, 1.0 };
-	GLfloat specularMaterial[4] = { 0.5, 0.5, 0.5, 1.0 };
+	
+	GLfloat diffuseMaterial[4] = { 0.8, 0.8, 0.8, 1.0 };
+	GLfloat ambientMaterial[4] = { 0.3, 0.3, 0.3, 1.0 };
+	GLfloat specularMaterial[4] = { 0.9, 0.9, 0.9, 1.0 };
 	GLfloat emissiveMaterial[4] = { 0.0, 0.0, 0.0, 1.0 };
 	GLfloat mShininess[] = { 1 };
 	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specularMaterial);
@@ -484,15 +489,15 @@ void drawAxis()
 	glEnd();
 	//center sphere
 	glColor3f(1, 1, 1);
-	glutSolidSphere(0.6, 16, 16);
+	glutSolidSphere(0.3, 16, 16);
 }
 
 void drawGrid()
 {
+	float x, y, z;
 	glTranslatef(0, -0.5f, 0);
 	glEnable(GL_COLOR_MATERIAL);
 	glColorMaterial(GL_FRONT, GL_DIFFUSE);
-	float x, y, z;
 	y = -0.5f;
 	glBegin(GL_QUADS);
 	for(int x = -gridSize; x < gridSize; x++)
@@ -513,7 +518,6 @@ void drawGrid()
 
 			glTexCoord2f((x / gridSize), (z / gridSize));
 			glVertex3f(x, y, z);
-
 		}
 	}
 	glEnd();
@@ -578,7 +582,8 @@ void drawPlane()
 {
 	glPushMatrix();
 	// move to where the enterprise will be drawn; in front of the camera
-	glTranslatef(camPos[0] + (5 * sin(camAngle)), camAt[1] - .75 + 7.5 * camVVel, camPos[2] - (5 * cos(camAngle)));
+	glTranslatef(camPos[0] + (3 * sin(camAngle)), camAt[1] - .75 + 7.5 * camVVel, camPos[2] - (3 * cos(camAngle)));
+	glScalef(0.75f, 0.75f, 0.75f);
 	glRotatef((180 / PI * -camAngle) - 90, 0, 1, 0); // orient the cessna to face away from the camera
 	glTranslatef(-150 * camHVel, 0, -50 * camRotVel);
 	glRotatef(-2000 * camRotVel, 0, 1, 0); // rotation
@@ -605,6 +610,7 @@ void display(void)
 		camAt[0], camAt[1], camAt[2],
 		0, 1, 0);
 
+	initSun();
 
 	if (gridMode)
 	{
@@ -624,32 +630,40 @@ void display(void)
 		gluQuadricTexture(seaObj, GL_TRUE);
 		glBindTexture(GL_TEXTURE_2D, seaTexture);
 		gluQuadricTexture(seaObj, seaTexture);
-		glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, shiny);
-		glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, none);
+		glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, new GLfloat {50});
+		glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, lightgreen);
+
+		if (fog) glEnable(GL_FOG);
 
 		drawSea();
 
+		glDisable(GL_FOG);
+
 		glPopMatrix();
 
-		glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, dull);
-		glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, black);
 		glPushMatrix();
+
 		gluQuadricNormals(skyObj, GLU_SMOOTH);
 		gluQuadricTexture(skyObj, GL_TRUE);
 		glBindTexture(GL_TEXTURE_2D, skyTexture);
 		gluQuadricTexture(skyObj, skyTexture);
-		//glDisable(GL_CULL_FACE);
-		glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, shiny);
+		glDisable(GL_CULL_FACE);
+		glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, new GLfloat {50});
 		glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, yellow);
+
 		drawSky();
-		//glEnable(GL_CULL_FACE);
+
+		glEnable(GL_CULL_FACE);
+
 		glPopMatrix();
 	}
+
 	initSun();
+
 	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, white);
-	glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, littleshiny);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, new GLfloat {10});
 	glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, black);
-	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, littlespecular);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, white);
 
 	drawPlane();
 
@@ -668,13 +682,16 @@ void key(unsigned char key, int x, int y)
 	{
 		case 'w':
 			wireframe = !wireframe;
-			glPolygonMode(GL_FRONT, wireframe ? GL_LINE : GL_FILL);
+			glPolygonMode(GL_FRONT_AND_BACK, wireframe ? GL_LINE : GL_FILL);
 			break;
 		case 'v':
 			vMouseControl = !vMouseControl;
 			break;
 		case 's':
 			gridMode = !gridMode;
+			break;
+		case 'b':
+			fog = !fog;
 			break;
 
 	}
@@ -690,8 +707,8 @@ void sKey(int key, int x, int y)
 	if (key == GLUT_KEY_PAGE_DOWN) camHVel -= 0.0002;
 	if (key == GLUT_KEY_PAGE_UP) camHVel += 0.0002;
 
-	if (camHVel > 0.015) camHVel = 0.015;
-	else if (camHVel < 0.0015) camHVel = 0.0015;
+	if (camHVel > 0.01) camHVel = 0.01;
+	else if (camHVel < 0.003) camHVel = 0.003;
 }
 
 void pMouse(int x, int y){ mx = x, my = y; }
@@ -723,13 +740,13 @@ void idle()
 
 
 	camRotVel += -(GLfloat)(windowWidth / 2 - mx) / 10000000;
-	if(vMouseControl) camVVel += (GLfloat)(windowHeight / 3 - my) / 1000000;
+	if(vMouseControl) camVVel += ((GLfloat) windowHeight / 3 - my) / 3000000;
 
 	if (camRotVel > 0.002 + 0.00001 / camHVel) camRotVel = 0.002 + 0.00001 / camHVel;
 	else if (camRotVel < -0.002 - 0.00001 / camHVel) camRotVel = -0.002 - 0.00001 / camHVel;
 
-	if (camVVel > 5 * camHVel) camVVel = 5 * camHVel;
-	else if (camVVel < -.03 - camHVel/2) camVVel = -.03 - camHVel/2;
+	if (camVVel > 7.5 * camHVel) camVVel = 7.5 * camHVel;
+	else if (camVVel < -.1) camVVel = -.1;
 
 	camVVel *= 0.998;
 	camRotVel *= 0.995;
@@ -755,10 +772,11 @@ int main(int argc, char **argv)
 	glutKeyboardFunc(key);
 	glutSpecialFunc(sKey);
 	glutPassiveMotionFunc(pMouse);
+
 	// init params
 	glEnable(GL_DEPTH_TEST); /* Enable hidden--surface--removal */
 	glClearColor(0.0, 0.0, 0.0, 1.0);
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	glPolygonMode(GL_FRONT, GL_FILL);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	gluPerspective(45, 640.0 / 480.0, 1, 10000);
@@ -766,13 +784,19 @@ int main(int argc, char **argv)
 	glEnable(GL_LINE_SMOOTH);
 	glEnable(GL_POLYGON_SMOOTH);
 	glMatrixMode(GL_MODELVIEW);
-	// init enterprise and randoms
+
 	loadCessna();
 	loadProps();
-	initSun();
+
 	loadTexture("sea02.ppm", &seaTexture);
 	loadTexture("mount03.ppm", &mountTexture);
 	loadTexture("sky08.ppm", &skyTexture);
+
+	glFogfv(GL_FOG_COLOR, fogColor);
+	glFogf(GL_FOG_MODE, GL_EXP);
+	glHint(GL_FOG_HINT, GL_NICEST);
+	glFogf(GL_FOG_DENSITY, 0.004f);
+
 	// print controls
 	printf("\n\nScene controls\n----------------\n\n");
 	printf("r:\trings\n");
@@ -788,5 +812,6 @@ int main(int argc, char **argv)
 	printf("RIGHT:\tright\n");
 	printf("PG UP:\tforwards\n");
 	printf("PG DN:\tbackwards\n");
+
 	glutMainLoop();
 }
