@@ -17,6 +17,8 @@ int windowWidth = 640, windowHeight = 480;
 
 int mx, my;
 
+GLuint seaTexture, mountTexture, skyTexture;
+
 // Where the camera is, where it's looking, how high in Y it is, and what direction it's pointing in
 GLfloat camPos[] = { 10.0,10.0,20.0 };
 GLfloat camAt[] = { 0.0,0.0,0.0 };
@@ -383,10 +385,8 @@ void initSky()
 	//gluQuadricTexture(skyObj, skyTexture);
 }
 
-GLuint loadTexture(const char * filename)
+void loadTexture(const char * filename, GLuint * ID)
 {
-	GLuint textureID;
-
 	int imageWidth, imageHeight;
 
 	// temporary character
@@ -427,8 +427,9 @@ GLuint loadTexture(const char * filename)
 	int maxValue;
 	fscanf(fileID, "%d %d %d", &imageWidth, &imageHeight, &maxValue);
 
-	// allocate enough memory for the image  (3*) because of the RGB data
+	glEnable(GL_TEXTURE_2D);
 
+	/*
 	GLubyte ***texture = new GLubyte**[imageWidth];
 	forEach(w, imageWidth)
 	{
@@ -438,20 +439,31 @@ GLuint loadTexture(const char * filename)
 			texture[w][h] = new GLubyte[3];
 		}
 	}
+	*/
+
+	GLubyte *texture = (GLubyte *)malloc(3 * imageWidth * imageHeight * sizeof(GLubyte));
 
 	// if the maxValue is 255 carry on, otherwise report that we only support max value of 255
 	int r, g, b;
+	int c;
 	if(maxValue == 255)
 	{
+		/*
 		forEach(u, imageWidth)
 		{
 			forEach(v, imageHeight)
 			{
 				fscanf(fileID, "%d %d %d", &r, &g, &b);
-				texture[u][v][0] = r;
-				texture[u][v][1] = g;
-				texture[u][v][2] = b;
+				texture[u][v][0] = (GLubyte) r;
+				texture[u][v][1] = (GLubyte) g;
+				texture[u][v][2] = (GLubyte) b;
 			}
+		}
+		*/
+		forEach(b, 3 * imageWidth * imageHeight)
+		{
+			fscanf(fileID, "%d", &c);
+			texture[b] = (GLubyte) c;
 		}
 	}
 	else printf("This program does not support PPM files with max values other than 255");
@@ -460,22 +472,25 @@ GLuint loadTexture(const char * filename)
 	fclose(fileID);
 
 	// generate texture id
-	glGenTextures(1, &textureID);
+	glGenTextures(1, ID);
 	// bind the texture
-	glBindTexture(GL_TEXTURE_2D, textureID);
+	glBindTexture(GL_TEXTURE_2D, *ID);
 	//configuration
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-		GL_LINEAR_MIPMAP_NEAREST);
+	
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	//wrap or cut off based on param
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	
+
+	// tell openGL how to scale the texture image up if needed
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	// tell openGL how to scale the texture image down if needed
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
 	// build 2d mipmaps
 	gluBuild2DMipmaps(GL_TEXTURE_2D, 3, imageWidth, imageHeight, GL_RGB, GL_UNSIGNED_BYTE, texture);
-
-	return textureID;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -697,7 +712,7 @@ void idle()
 	else if (camRotVel < -0.002 - 0.00001 / camHVel) camRotVel = -0.002 - 0.00001 / camHVel;
 
 	if (camVVel > 5 * camHVel) camVVel = 5 * camHVel;
-	else if (camVVel < -.02 - camHVel) camVVel = -.02 - camHVel;
+	else if (camVVel < -.03 - camHVel/2) camVVel = -.03 - camHVel/2;
 
 	camVVel *= 0.998;
 	camRotVel *= 0.995;
@@ -738,6 +753,9 @@ int main(int argc, char **argv)
 	loadCessna();
 	loadProps();
 	initSun();
+	loadTexture("sea02.ppm", &seaTexture);
+	loadTexture("mount03.ppm", &mountTexture);
+	loadTexture("sky08.ppm", &skyTexture);
 	// print controls
 	printf("\n\nScene controls\n----------------\n\n");
 	printf("r:\trings\n");
