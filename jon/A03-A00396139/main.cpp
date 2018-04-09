@@ -383,6 +383,101 @@ void initSky()
 	//gluQuadricTexture(skyObj, skyTexture);
 }
 
+GLuint loadTexture(const char * filename)
+{
+	GLuint textureID;
+
+	int imageWidth, imageHeight;
+
+	// temporary character
+	char tempChar;
+
+	// array for reading in header information
+	char headerLine[100];
+
+	// open the image file for reading
+	FILE *fileID = fopen(filename, "r");
+
+	// read in the first header line
+	fscanf(fileID, "%[^\n] ", headerLine);
+
+	// make sure that the image begins with 'P3', which signifies a PPM file
+	if ((headerLine[0] != 'P') || (headerLine[1] != '3'))
+	{
+		printf("This is not a PPM file!\n");
+		exit(0);
+	}
+
+	// read in the first character of the next line
+	fscanf(fileID, "%c", &tempChar);
+
+	// while we still have comment lines (which begin with #)
+	while (tempChar == '#')
+	{
+		// read in the comment
+		fscanf(fileID, "%[^\n] ", headerLine);
+		// read in the first character of the next line
+		fscanf(fileID, "%c", &tempChar);
+	}
+
+	// the last one was not a comment character '#', so we need to put it back into the file stream (undo)
+	ungetc(tempChar, fileID);
+
+	// read in the image hieght, width and the maximum value
+	int maxValue;
+	fscanf(fileID, "%d %d %d", &imageWidth, &imageHeight, &maxValue);
+
+	// allocate enough memory for the image  (3*) because of the RGB data
+
+	GLubyte ***texture = new GLubyte**[imageWidth];
+	forEach(w, imageWidth)
+	{
+		texture[w] = new GLubyte*[imageHeight];
+		forEach(h, imageHeight)
+		{
+			texture[w][h] = new GLubyte[3];
+		}
+	}
+
+	// if the maxValue is 255 carry on, otherwise report that we only support max value of 255
+	int r, g, b;
+	if(maxValue == 255)
+	{
+		forEach(u, imageWidth)
+		{
+			forEach(v, imageHeight)
+			{
+				fscanf(fileID, "%d %d %d", &r, &g, &b);
+				texture[u][v][0] = r;
+				texture[u][v][1] = g;
+				texture[u][v][2] = b;
+			}
+		}
+	}
+	else printf("This program does not support PPM files with max values other than 255");
+
+	// close the image file
+	fclose(fileID);
+
+	// generate texture id
+	glGenTextures(1, &textureID);
+	// bind the texture
+	glBindTexture(GL_TEXTURE_2D, textureID);
+	//configuration
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+		GL_LINEAR_MIPMAP_NEAREST);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	//wrap or cut off based on param
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+	// build 2d mipmaps
+	gluBuild2DMipmaps(GL_TEXTURE_2D, 3, imageWidth, imageHeight, GL_RGB, GL_UNSIGNED_BYTE, texture);
+
+	return textureID;
+}
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void drawAxis()
@@ -488,8 +583,9 @@ void drawPlane()
 	glTranslatef(camPos[0] + (5 * sin(camAngle)), camAt[1] - .75 + 7.5 * camVVel, camPos[2] - (5 * cos(camAngle)));
 	glRotatef((180 / PI * -camAngle) - 90, 0, 1, 0); // orient the cessna to face away from the camera
 	glTranslatef(-150 * camHVel, 0, -50 * camRotVel);
+	glRotatef(-2000 * camRotVel, 0, 1, 0); // rotation
 	glRotatef(-7500 * camRotVel, 1, 0, 0); // banking
-	glRotatef(-600 * camVVel, 0, 0, 1); // up/ down
+	glRotatef(-750 * camVVel, 0, 0, 1); // up/ down
 	
 	glEnable(GL_COLOR_MATERIAL);
 	glColorMaterial(GL_FRONT, GL_DIFFUSE);
@@ -593,18 +689,20 @@ void idle()
 	camAt[1] = camHeight;
 	camAt[2] = camPos[2] - (10 * cos(camAngle));
 
-	camVVel *= 0.998;
 
-	camRotVel = -(GLfloat)(windowWidth / 2 - mx) / 100000;
-	if(vMouseControl) camVVel = (GLfloat)(windowHeight / 3 - my) / 10000;
+	camRotVel += -(GLfloat)(windowWidth / 2 - mx) / 10000000;
+	if(vMouseControl) camVVel += (GLfloat)(windowHeight / 3 - my) / 1000000;
 
 	if (camRotVel > 0.002 + 0.00001 / camHVel) camRotVel = 0.002 + 0.00001 / camHVel;
 	else if (camRotVel < -0.002 - 0.00001 / camHVel) camRotVel = -0.002 - 0.00001 / camHVel;
 
-	if (camVVel > .07) camVVel = .07;
-	else if (camVVel < -.07) camVVel = -.07;
+	if (camVVel > 5 * camHVel) camVVel = 5 * camHVel;
+	else if (camVVel < -.02 - camHVel) camVVel = -.02 - camHVel;
 
-	propTheta += 3456 * camHVel;
+	camVVel *= 0.998;
+	camRotVel *= 0.995;
+
+	propTheta += ((300 * camHVel) + (75 * (camVVel + 0.07)));
 
 	if (propTheta >= 360) propTheta = 0;
 
