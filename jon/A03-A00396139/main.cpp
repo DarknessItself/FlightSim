@@ -36,10 +36,12 @@ const GLfloat gridSize = 100.0f;
 
 bool // flags
     wireframe     = false,
-    vMouseControl = false,
+    vMouseControl = true,
 	gridMode      = false,
 	fog           = true,
-	fullscreen    = false;
+	fullscreen    = false,
+	islandTex     = true,
+	drawIslands   = true;
 
 GLfloat propTheta = 0;
 
@@ -422,7 +424,8 @@ void initIslands()
 	landId = glGenLists(1);
 	glNewList(landId, GL_COMPILE);
 
-	//glColor4f(1, 0, 0, 1);
+	//glBindTexture(GL_TEXTURE_2D, landTexture);
+
 	int i;
 	int numIslands = 5;
 
@@ -436,7 +439,7 @@ void initIslands()
 		distance = 100 + 100 * (GLfloat) rand() / RAND_MAX;
 
 		//move it down so edges are below sea
-		glTranslatef(0, -2, 0);
+		glTranslatef(0, -3, 0);
 
 		//glScalef(0.5f, 0.5f, 0.5f);
 		glScalef((20 + 130 * (GLfloat) rand() / RAND_MAX) / 100.0f, (20 + 130 * (GLfloat) rand() / RAND_MAX) / 100.0f, (20 + 130 * (GLfloat) rand() / RAND_MAX) / 100.0f);
@@ -469,7 +472,7 @@ void initIslands()
 			map[74][i] = 0.0;
 		}
 
-		glBindTexture(GL_TEXTURE_2D, landTexture);
+		//glBindTexture(GL_TEXTURE_2D, landTexture);
 
 		//draw the island
 		forEach(x, 74)
@@ -481,6 +484,7 @@ void initIslands()
 				//be default the normal is straight up (edges)
 				glNormal3f(0, 1, 0);
 
+				glColor3f(map[x][z+1], 1, map[x][z+1]);
 				//map coords of texture
 				glTexCoord2f((x / 75), ((z + 1) / 75));
 				//draw vertex
@@ -488,18 +492,21 @@ void initIslands()
 
 				//repeat for other 3 points of tile/quad/square
 
+				glColor3f(map[x + 1][z + 1] / 150, 1, map[x + 1][z + 1] / 150);
 				glTexCoord2f(((x + 1) / 75), ((z + 1) / 75));
 				glVertex3f(x + 1, map[x + 1][z + 1], z + 1);
 
+				glColor3f(map[x + 1][z] / 150, 1, map[x + 1][z] / 150);
 				glTexCoord2f(((x + 1) / 75), (z / 75));
 				glVertex3f(x + 1 , map[x + 1][z], z);
-
+				
+				glColor3f(map[x][z] / 150, 1, map[x][z] / 150);
 				glTexCoord2f((x / 75), (z / 75));
 				glVertex3f(x, map[x][z], z);
 				glEnd();
 			}
 		}
-		//glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+		glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 		glPopMatrix();
 	}
 	glEndList();
@@ -696,13 +703,13 @@ void drawProps()
 void drawPlane()
 {
 	glPushMatrix();
-	glTranslatef(camPos[0] + (3 * sin(camAngle)), camAt[1] - .75 + 7.5 * camVVel, camPos[2] - (3 * cos(camAngle)));
+	glTranslatef(camPos[0] + (3 * sin(camAngle)), camAt[1] - .75 + 5 * camVVel, camPos[2] - (3 * cos(camAngle)));
 	glScalef(0.75f, 0.75f, 0.75f);
 	glRotatef((180 / PI * -camAngle) - 90, 0, 1, 0); // orient the cessna to face away from the camera
 	glTranslatef(-150 * camHVel, 0, -50 * camRotVel);
 	glRotatef(-2000 * camRotVel, 0, 1, 0); // rotation
 	glRotatef(-7500 * camRotVel, 1, 0, 0); // banking
-	glRotatef(-750 * camVVel, 0, 0, 1); // up/ down
+	glRotatef(-850 * camVVel, 0, 0, 1); // up/ down
 	
 	glEnable(GL_COLOR_MATERIAL);
 	glColorMaterial(GL_FRONT, GL_DIFFUSE);
@@ -749,12 +756,15 @@ void display(void)
 
 		glPopMatrix();
 
-		glDisable(GL_CULL_FACE);
-		//glBindTexture(GL_TEXTURE_2D, landTexture);
+		if (drawIslands)
+		{
+			glDisable(GL_CULL_FACE);
+			if (islandTex) glBindTexture(GL_TEXTURE_2D, landTexture);
 
-		glCallList(landId);
-		glEnable(GL_CULL_FACE);
-
+			glCallList(landId);
+			glEnable(GL_CULL_FACE);
+		}
+		
 		glPushMatrix();
 
 		gluQuadricNormals(skyObj, GLU_SMOOTH);
@@ -807,7 +817,20 @@ void key(unsigned char key, int x, int y)
 		case 'b':
 			fog = !fog;
 			break;
-
+		case 'i':
+			initIslands();
+			break;
+		case 't':
+			islandTex = !islandTex;
+			break;
+		case 'f':
+			if (fullscreen) glutReshapeWindow(640, 480);
+			else glutFullScreen();
+			fullscreen = !fullscreen;
+			break;
+		case 'm':
+			drawIslands = !drawIslands;
+			break;
 	}
 }
 
@@ -849,17 +872,17 @@ void idle()
 
 	// update where the camera is looking
 	camAt[0] = camPos[0] + (10 * sin(camAngle));
-	camAt[1] = camHeight;
+	camAt[1] = camHeight + 25 * camVVel;
 	camAt[2] = camPos[2] - (10 * cos(camAngle));
 
-
+	// mouse control
 	camRotVel += -(GLfloat)(windowWidth / 2 - mx) / 10000000;
 	if(vMouseControl) camVVel += ((GLfloat) windowHeight / 3 - my) / 3000000;
 
-	if (camRotVel > 0.002 + 0.00001 / camHVel) camRotVel = 0.002 + 0.00001 / camHVel;
-	else if (camRotVel < -0.002 - 0.00001 / camHVel) camRotVel = -0.002 - 0.00001 / camHVel;
+	// can bank harder when going slower
+	if (abs(camRotVel) > 0.002 + 0.00001 / camHVel) camRotVel *= (1 - 200 * camHVel * abs(camRotVel));
 
-	if (camVVel > 7.5 * camHVel) camVVel = 7.5 * camHVel;
+	if (camVVel > 7.5 * camHVel) camVVel *= (1 - (GLfloat) camVVel / 25);
 	else if (camVVel < -.1) camVVel = -.1;
 
 	camVVel *= 0.998;
@@ -881,6 +904,7 @@ int main(int argc, char **argv)
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
 	glutInitWindowSize(windowWidth, windowHeight);
 	glutCreateWindow("A00396139 A03");
+
 	// set CBs
 	glutReshapeFunc(myReshape);
 	glutDisplayFunc(display);
@@ -901,15 +925,15 @@ int main(int argc, char **argv)
 	glEnable(GL_POLYGON_SMOOTH);
 	glMatrixMode(GL_MODELVIEW);
 
-	loadCessna();
-	loadProps();
-
-	initIslands();
-
 	loadTexture("sea02.ppm", &seaTexture);
 	loadTexture("mount03.ppm", &landTexture);
 	//loadTexture("sky08.ppm", &landTexture);
 	loadTexture("sky08.ppm", &skyTexture);
+
+	loadCessna();
+	loadProps();
+
+	initIslands();
 
 	glFogfv(GL_FOG_COLOR, fogColor);
 	glFogf(GL_FOG_MODE, GL_EXP);
