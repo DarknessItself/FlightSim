@@ -7,6 +7,8 @@
 #include <stdlib.h>
 #include <glut.h>
 #include <math.h>
+#include <time.h>
+
 
 // simplify for loops
 #define forEach(i, n) for(int i = 0; i < n; i++)
@@ -17,7 +19,7 @@ int windowWidth = 640, windowHeight = 480;
 
 int mx, my;
 
-GLuint seaTexture, mountTexture, skyTexture;
+GLuint seaTexture, landTexture, skyTexture;
 
 // Where the camera is, where it's looking, how high in Y it is, and what direction it's pointing in
 GLfloat camPos[] = { 10.0,10.0,20.0 };
@@ -32,14 +34,16 @@ GLfloat camRotVel = 0.0;
 
 const GLfloat gridSize = 100.0f;
 
-bool wireframe     = false,
-     vMouseControl = false,
-	 gridMode      = false,
-	 fog           = true;
+bool // flags
+    wireframe     = false,
+    vMouseControl = false,
+	gridMode      = false,
+	fog           = true,
+	fullscreen    = false;
 
 GLfloat propTheta = 0;
 
-int planeId, propId;
+int planeId, propId, landId;
 
 GLUquadricObj *skyObj = gluNewQuadric();
 GLUquadricObj *seaObj = gluNewQuadric();
@@ -372,9 +376,8 @@ void initSun()
 	GLfloat ambientMaterial[4] = { 0.3, 0.3, 0.3, 1.0 };
 	GLfloat specularMaterial[4] = { 0.9, 0.9, 0.9, 1.0 };
 	GLfloat emissiveMaterial[4] = { 0.0, 0.0, 0.0, 1.0 };
-	GLfloat mShininess[] = { 1 };
 	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specularMaterial);
-	glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, mShininess);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, new GLfloat { 1 });
 	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuseMaterial);
 	glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emissiveMaterial);
 	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, ambientMaterial);
@@ -392,7 +395,117 @@ void initSea()
 	gluQuadricTexture(seaObj, GL_TRUE);
 }
 
-// largely taken from example 
+// Performs millions of years worth of geology in seconds
+void geologize(float map[75][75], int left, int right, int top, int bottom, int iteration)
+{
+	if (iteration >= 8) {
+		return;
+	}
+	int width = right - left;
+	int height = bottom - top;
+	map[left + (width / 2)][top + (height / 2)] += (2 * (GLfloat)rand() / RAND_MAX) / (iteration);
+	map[left][top + (height / 2)]               += (2 * (GLfloat)rand() / RAND_MAX) / (iteration);
+	map[left + (width / 2)][top]                += (2 * (GLfloat)rand() / RAND_MAX) / (iteration);
+	map[left + (width - 1)][top + (height / 2)] += (2 * (GLfloat)rand() / RAND_MAX) / (iteration);
+	map[left + (width / 2)][top + (height - 1)] += (2 * (GLfloat)rand() / RAND_MAX) / (iteration);
+
+	iteration++;
+
+	geologize(map, left, left + (width / 2), top, bottom - (height / 2), iteration);
+	geologize(map, left + (width / 2), right, top, bottom - (height / 2), iteration);
+	geologize(map, left, left + (width / 2), top + (height / 2), bottom, iteration);
+	geologize(map, left + (width / 2), right, top + (height / 2), bottom, iteration);
+}
+
+void initIslands()
+{
+	landId = glGenLists(1);
+	glNewList(landId, GL_COMPILE);
+
+	//glColor4f(1, 0, 0, 1);
+	int i;
+	int numIslands = 5;
+
+	// angle and distance from origin for each island
+	float angle, distance;
+
+	//generate a certain number of islands
+	for (i = 0; i < numIslands; i++) {
+		glPushMatrix();
+		angle = ((360 / numIslands) * i);
+		distance = 100 + 100 * (GLfloat) rand() / RAND_MAX;
+
+		//move it down so edges are below sea
+		glTranslatef(0, -2, 0);
+
+		//glScalef(0.5f, 0.5f, 0.5f);
+		glScalef((20 + 130 * (GLfloat) rand() / RAND_MAX) / 100.0f, (20 + 130 * (GLfloat) rand() / RAND_MAX) / 100.0f, (20 + 130 * (GLfloat) rand() / RAND_MAX) / 100.0f);
+
+		glTranslatef(sin(angle) * distance, 0, cos(angle) * distance);
+		glTranslatef(-32, 0, -32);
+		
+		float map[75][75];
+
+		//initialize the heights to be in a cone-like shape based on distance from center
+		forEach(x, 75)
+		{
+			forEach(z, 75)
+			{
+				float distance = sqrt((pow((75 / 2) - x, 2)) + (pow((75 / 2) - z, 2))) * 0.9f;
+				map[x][z] = ((75 / 2) - distance) / 2.0f;
+				if (map[x][z] < 0) map[x][z] = 0;
+			}
+		}
+
+		//recursively raise the island to give it peaks and valleys, ignore the edges
+		geologize(map, 1, 74, 1, 74, 1);
+
+		// change the outer edge to always be flat on the ground
+		forEach(i, 75)
+		{
+			map[i][0] = 0.0;
+			map[i][74] = 0.0;
+			map[0][i] = 0.0;
+			map[74][i] = 0.0;
+		}
+
+		glBindTexture(GL_TEXTURE_2D, landTexture);
+
+		//draw the island
+		forEach(x, 74)
+		{
+			forEach(z, 74)
+			{
+				glBegin(GL_POLYGON);
+
+				//be default the normal is straight up (edges)
+				glNormal3f(0, 1, 0);
+
+				//map coords of texture
+				glTexCoord2f((x / 75), ((z + 1) / 75));
+				//draw vertex
+				glVertex3f(x , map[x][z + 1], z + 1);
+
+				//repeat for other 3 points of tile/quad/square
+
+				glTexCoord2f(((x + 1) / 75), ((z + 1) / 75));
+				glVertex3f(x + 1, map[x + 1][z + 1], z + 1);
+
+				glTexCoord2f(((x + 1) / 75), (z / 75));
+				glVertex3f(x + 1 , map[x + 1][z], z);
+
+				glTexCoord2f((x / 75), (z / 75));
+				glVertex3f(x, map[x][z], z);
+				glEnd();
+			}
+		}
+		//glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+		glPopMatrix();
+	}
+	glEndList();
+}
+
+// largely taken from example code from brightspace
 void loadTexture(const char * filename, GLuint * ID)
 {
 	int imageWidth, imageHeight;
@@ -554,6 +667,8 @@ void drawSea()
 	glColor4f(0.0, 0.0, 0.6, 1.0);
 	GLfloat ambientMaterial[4] = { 0.2, 0.2, 0.4, 1.0 };
 	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, ambientMaterial);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, new GLfloat{ 50 });
+	glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, lightgreen);
 	gluDisk(seaObj, 0, 510, 64, 64);
 }
 
@@ -581,7 +696,6 @@ void drawProps()
 void drawPlane()
 {
 	glPushMatrix();
-	// move to where the enterprise will be drawn; in front of the camera
 	glTranslatef(camPos[0] + (3 * sin(camAngle)), camAt[1] - .75 + 7.5 * camVVel, camPos[2] - (3 * cos(camAngle)));
 	glScalef(0.75f, 0.75f, 0.75f);
 	glRotatef((180 / PI * -camAngle) - 90, 0, 1, 0); // orient the cessna to face away from the camera
@@ -607,8 +721,8 @@ void display(void)
 
 	// set the camera position
 	gluLookAt(camPos[0], camPos[1], camPos[2],
-		camAt[0], camAt[1], camAt[2],
-		0, 1, 0);
+			  camAt[0],  camAt[1],  camAt[2],
+			  0,         1,         0);
 
 	initSun();
 
@@ -626,12 +740,6 @@ void display(void)
 		glEnable(GL_TEXTURE_2D);
 		glPushMatrix();
 		glTranslatef(0, -1, 0);
-		gluQuadricNormals(seaObj, GLU_SMOOTH);
-		gluQuadricTexture(seaObj, GL_TRUE);
-		glBindTexture(GL_TEXTURE_2D, seaTexture);
-		gluQuadricTexture(seaObj, seaTexture);
-		glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, new GLfloat {50});
-		glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, lightgreen);
 
 		if (fog) glEnable(GL_FOG);
 
@@ -640,6 +748,12 @@ void display(void)
 		glDisable(GL_FOG);
 
 		glPopMatrix();
+
+		glDisable(GL_CULL_FACE);
+		//glBindTexture(GL_TEXTURE_2D, landTexture);
+
+		glCallList(landId);
+		glEnable(GL_CULL_FACE);
 
 		glPushMatrix();
 
@@ -658,7 +772,7 @@ void display(void)
 		glPopMatrix();
 	}
 
-	initSun();
+	//initSun();
 
 	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, white);
 	glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, new GLfloat {10});
@@ -702,8 +816,8 @@ void sKey(int key, int x, int y)
 	// add to or subtract from velocities and ensure they don't exceed bounds
 	//if (key == GLUT_KEY_LEFT) camRotVel -= .0001;
 	//if (key == GLUT_KEY_RIGHT) camRotVel += .0001;
-	if (key == GLUT_KEY_DOWN) camVVel -= .0005;
-	if (key == GLUT_KEY_UP) camVVel += .0005;
+	if (key == GLUT_KEY_DOWN) camVVel -= .001;
+	if (key == GLUT_KEY_UP) camVVel += .001;
 	if (key == GLUT_KEY_PAGE_DOWN) camHVel -= 0.0002;
 	if (key == GLUT_KEY_PAGE_UP) camHVel += 0.0002;
 
@@ -760,6 +874,8 @@ void idle()
 
 int main(int argc, char **argv)
 {
+	srand(time(NULL));
+
 	glutInit(&argc, argv);
 
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
@@ -788,8 +904,11 @@ int main(int argc, char **argv)
 	loadCessna();
 	loadProps();
 
+	initIslands();
+
 	loadTexture("sea02.ppm", &seaTexture);
-	loadTexture("mount03.ppm", &mountTexture);
+	loadTexture("mount03.ppm", &landTexture);
+	//loadTexture("sky08.ppm", &landTexture);
 	loadTexture("sky08.ppm", &skyTexture);
 
 	glFogfv(GL_FOG_COLOR, fogColor);
