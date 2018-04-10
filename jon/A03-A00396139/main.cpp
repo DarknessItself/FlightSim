@@ -9,7 +9,6 @@
 #include <math.h>
 #include <time.h>
 
-
 // simplify for loops
 #define forEach(i, n) for(int i = 0; i < n; i++)
 
@@ -17,6 +16,7 @@ const GLfloat PI = 3.14159;
 
 int windowWidth = 640, windowHeight = 480;
 
+// mouse position
 int mx, my;
 
 GLuint seaTexture, landTexture, skyTexture;
@@ -27,7 +27,7 @@ GLfloat camAt[] = { 0.0,0.0,0.0 };
 GLfloat camHeight = 10.0;
 GLfloat camAngle = -PI / 4;
 
-// Camera's velocity in XZ (trans.), Y, and XY (rot.)
+// Camera's velocity in XZ, Y (trans.), and Y (rot.)
 GLfloat camHVel = 0.003;
 GLfloat camVVel = 0.0;
 GLfloat camRotVel = 0.0;
@@ -45,11 +45,13 @@ bool // flags
 
 GLfloat propTheta = 0;
 
+// IDs for GL lists to draw plane, props, and islands
 int planeId, propId, landId;
 
 GLUquadricObj *skyObj = gluNewQuadric();
 GLUquadricObj *seaObj = gluNewQuadric();
 
+// light properties for the sun
 GLfloat sunAmbient[]  = { 0.75, 0.75, 0.75 };
 GLfloat sunDiffuse[]  = { 1, 1, 1 };
 GLfloat sunSpecular[] = { 1, 1, 1 };
@@ -60,21 +62,22 @@ GLfloat none[] = { 0,0,0,0 };
 
 GLfloat fogColor[4] = { 0.8, 0.6, 0.7, 0.25 };
 
+// colours to be used for various things
 
 typedef GLfloat colour[4];
 
-colour littlespecular = { 0.5, 0.5, 0.5, 1.0 };
-colour darkgreen	  = { 0.0, 1.0, 0.0, 1.0 };
-colour lightgreen	  = { 0.6, 0.8, 0.5, 1.0 };
-colour white		  = { 1.0, 1.0, 1.0, 1.0 };
-colour grey			  = { 0.3, 0.3, 0.3, 1.0 };
-colour yellow		  = { 0.8, 0.8, 0.0, 1.0 };
-colour red			  = { 1.0, 0.0, 0.0, 1.0 };
-colour black		  = { 0.0, 0.0, 0.0, 1.0 };
-colour blue			  = { 0.0, 0.0, 0.8, 1.0 };
-colour purple		  = { 0.7, 0.5, 0.9, 1.0 };
+colour lgrey  = { 0.5, 0.5, 0.5, 1.0 };
+colour dgreen = { 0.0, 1.0, 0.0, 1.0 };
+colour lgreen = { 0.6, 0.8, 0.5, 1.0 };
+colour white  = { 1.0, 1.0, 1.0, 1.0 };
+colour dgrey  = { 0.3, 0.3, 0.3, 1.0 };
+colour yellow = { 0.8, 0.8, 0.0, 1.0 };
+colour red	  = { 1.0, 0.0, 0.0, 1.0 };
+colour black  = { 0.0, 0.0, 0.0, 1.0 };
+colour blue	  = { 0.0, 0.0, 0.8, 1.0 };
+colour purple = { 0.7, 0.5, 0.9, 1.0 };
 
-
+// xyz coord's and normals
 typedef struct Point
 {
 	float x;
@@ -87,37 +90,42 @@ typedef struct Point
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-GLint loadCessna() {
-	//store the points in an array
+// loads the cessna and makes a gl list to draw it
+GLint loadCessna()
+{
+	// vertices and normals will be stored in a point array 
 	Point points[6764];
-	//Point* points = malloc(sizeof(Point) * 6764);
-	//count the number of points and faces
-	int pointCount = 0;
-	int normalCount = 0;
-	int faceCount = 0;
-	int objectCount = 0;
-	//store the display list id for calling later.
+
+	// keep track of the number of vertices, normals, faces, and objects
+	int ptC = 0;
+	int nmC = 0;
+	int fcC = 0;
+	int obC = 0;
+
+	// generate gl list, store ID in global variable planeId
 	planeId = glGenLists(1);
+
 	glNewList(planeId, GL_COMPILE);
 	
+	// initialze material vectors to be used to set material properties of the plane
 	GLfloat diffuseMaterial[4] = { 0.0, 0.0, 0.0, 1.0 };
 	GLfloat ambientMaterial[4] = { 0.0, 0.0, 0.0, 1.0 };
-	GLfloat specularMaterial[4] = { 1.0, 1.0, 1.0, 1.0 };
+	GLfloat specularMaterial[4] = { 1.0, 1.0, 1.0, 1.0 }; // this one doesn't change, entire plane is full specular
 
+	// load in the txt file
 	FILE * file;
 	char objectName[256];
 	char line[256];
-	// open cessna txt file
 	file = fopen("cessna.txt", "rt");
-	if (file == NULL) {
+	if (file == NULL)
+	{
 		printf("Could not load cessna.txt\n");
 		return planeId;
 	}
 
-	//begin drawing triangles (stored in display list not actually drawn).
-
-	//read line by line, assuming less than 256 characters
-	while (fgets(line, 256, file) != NULL) {
+	// read line by line (assuming lines are <= 256 in length)
+	while (fgets(line, 256, file) != NULL)
+	{
 		float x;
 		float y;
 		float z;
@@ -125,94 +133,50 @@ GLint loadCessna() {
 		float ny;
 		float nz;
 		char ch;
+
 		// start by looking for info about vertices
 		int info = sscanf(line, "v %f %f %f", &x, &y, &z);
+
 		// if vertex info found
-		if (info != 0) {
+		if (info != 0)
+		{
 			// create and store point
 			Point point = { x, y, z };
-			points[pointCount] = point;
-			pointCount++;
+			points[ptC] = point;
+			ptC++;
 		}
-		else if ((info = sscanf(line, "n %f %f %f", &nx, &ny, &nz)) != 0) {
-			// add the normal data to the right point
-			points[normalCount].nx = nx;
-			points[normalCount].ny = ny;
-			points[normalCount].nz = nz;
-			normalCount++;
-		}
-		else if ((info = sscanf(line, "g %s", objectName)) != 0)
+		else if ((info = sscanf(line, "n %f %f %f", &nx, &ny, &nz)) != 0) // normal
 		{
-			//printf("%d %s\n", found, objectName);
-
-			if (objectCount <= 3) {
-				diffuseMaterial[0] = yellow[0];
-				diffuseMaterial[1] = yellow[1];
-				diffuseMaterial[2] = yellow[2];
-				diffuseMaterial[3] = yellow[3];
-			}
-			else if (objectCount >= 4 && objectCount <= 5)
-			{
-				diffuseMaterial[0] = black[0];
-				diffuseMaterial[1] = black[1];
-				diffuseMaterial[2] = black[2];
-				diffuseMaterial[3] = black[3];
-			}
-			else if (objectCount == 6)
-			{
-				diffuseMaterial[0] = purple[0];
-				diffuseMaterial[1] = purple[1];
-				diffuseMaterial[2] = purple[2];
-				diffuseMaterial[3] = purple[3];
-			}
-			else if (objectCount == 7) {
-				diffuseMaterial[0] = blue[0];
-				diffuseMaterial[1] = blue[1];
-				diffuseMaterial[2] = blue[2];
-				diffuseMaterial[3] = blue[3];
-			}
-			else if (objectCount >= 8 && objectCount <= 10)
-			{
-				diffuseMaterial[0] = yellow[0];
-				diffuseMaterial[1] = yellow[1];
-				diffuseMaterial[2] = yellow[2];
-				diffuseMaterial[3] = yellow[3];
-			}
-			else if (objectCount == 11) {
-				diffuseMaterial[0] = black[0];
-				diffuseMaterial[1] = black[1];
-				diffuseMaterial[2] = black[2];
-				diffuseMaterial[3] = black[3];
-			}
-			else if (objectCount >= 12 && objectCount <= 13)
-			{
-				diffuseMaterial[0] = yellow[0];
-				diffuseMaterial[1] = yellow[1];
-				diffuseMaterial[2] = yellow[2];
-				diffuseMaterial[3] = yellow[3];
-			}
-			else if (objectCount >= 14 && objectCount <= 25)
-			{
-				diffuseMaterial[0] = blue[0];
-				diffuseMaterial[1] = blue[1];
-				diffuseMaterial[2] = blue[2];
-				diffuseMaterial[3] = blue[3];
-			}
-			else if (objectCount >= 26 && objectCount <= 31)
-			{
-				diffuseMaterial[0] = yellow[0];
-				diffuseMaterial[1] = yellow[1];
-			    diffuseMaterial[2] = yellow[2];
-			    diffuseMaterial[3] = yellow[3];
-		    }
-	
-		objectCount++;
+			// add the normal data to the associated point
+			points[nmC].nx = nx;
+			points[nmC].ny = ny;
+			points[nmC].nz = nz;
+			nmC++;
 		}
-		else if ((info = sscanf(line, "%c ", &ch)) != 0 && ch == 'f') {
+		else if ((info = sscanf(line, "g %s", objectName)) != 0) // sub-object
+		{
+			// set material properties (colour) based on which object we're reading
+			#define colourDiffuse(c) forEach(i, 4) diffuseMaterial[i] = c[i]
+
+			if      (obC <= 3)				 colourDiffuse( yellow );
+			else if (obC >= 4  && obC <= 5)  colourDiffuse( black  );
+			else if (obC == 6)				 colourDiffuse( purple );
+			else if (obC == 7)				 colourDiffuse( blue   );
+			else if (obC >= 8  && obC <= 10) colourDiffuse( yellow );
+			else if (obC == 11)              colourDiffuse( black  );
+			else if (obC >= 12 && obC <= 13) colourDiffuse( yellow );
+			else if (obC >= 14 && obC <= 25) colourDiffuse( blue   );
+			else if (obC >= 26 && obC <= 31) colourDiffuse( yellow );
+
+			obC++;
+		}
+		else if ((info = sscanf(line, "%c ", &ch)) != 0 && ch == 'f') // face
+		{
 			int f;
-			//printf("char %c\n", ch);
 			char *token;
 			token = strtok(line, " ");
+
+			// set the rest of the material properties and apply them
 			ambientMaterial[0] = diffuseMaterial[0] * 0.2f;
 			ambientMaterial[1] = diffuseMaterial[1] * 0.2f;
 			ambientMaterial[2] = diffuseMaterial[2] * 0.2f;
@@ -220,20 +184,24 @@ GLint loadCessna() {
 			glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specularMaterial);
 			glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuseMaterial);
 			glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, none);
-			glColor4f(diffuseMaterial[0], diffuseMaterial[1], diffuseMaterial[2], diffuseMaterial[3]);
-			glBegin(GL_POLYGON);
 
-			while (token != NULL) {
+			// colour based on diffue colour
+			glColor4f(diffuseMaterial[0], diffuseMaterial[1], diffuseMaterial[2], diffuseMaterial[3]);
+
+			glBegin(GL_POLYGON); // begin drawing the polygon (saved in list to be called later)
+
+			// read face info and draw vertices accordingly
+			while (token != NULL)
+			{
 				f = atoi(token);
-				if (f != 0) {
-					//printf(" %d %f %f %f\n", f,points[f - 1].x, points[f - 1].y,
-					//		points[f - 1].z);
+				if (f != 0)
+				{
 					glNormal3f(points[f - 1].nx, points[f - 1].ny, points[f - 1].nz);
 					glVertex3f(points[f - 1].x, points[f - 1].y, points[f - 1].z);
 				}
 				token = strtok(NULL, " ");
 			}
-			faceCount++;
+			fcC++;
 			glEnd();
 		}
 	}
@@ -246,17 +214,16 @@ GLint loadCessna() {
 	return planeId;
 }
 
+// same as for the plane (hence no comments)
 GLint loadProps()
 {
-	//store the points in an array
 	Point points[6764];
-	//Point* points = malloc(sizeof(Point) * 6764);
-	//count the number of points and faces
-	int pointCount = 0;
-	int normalCount = 0;
-	int faceCount = 0;
-	int objectCount = 0;
-	//store the display list id for calling later.
+
+	int ptC = 0;
+	int nmC = 0;
+	int fcC = 0;
+	int obC = 0;
+
 	propId = glGenLists(1);
 	glNewList(propId, GL_COMPILE);
 
@@ -267,17 +234,13 @@ GLint loadProps()
 	FILE * file;
 	char objectName[256];
 	char line[256];
-	// open cessna txt file
 	file = fopen("propeller.txt", "rt");
 	if (file == NULL)
 	{
-		printf("Could not load cessna.txt\n");
+		printf("Could not load propeller.txt\n");
 		return propId;
 	}
 
-	//begin drawing triangles (stored in display list not actually drawn).
-
-	//read line by line, assuming less than 256 characters
 	while (fgets(line, 256, file) != NULL)
 	{
 		float x;
@@ -287,44 +250,32 @@ GLint loadProps()
 		float ny;
 		float nz;
 		char ch;
-		// start by looking for info about vertices
 		int info = sscanf(line, "v %f %f %f", &x, &y, &z);
-		// if vertex info found
-		if (info != 0) {
-			// create and store point
+		if (info != 0)
+		{
 			Point point = { x, y, z };
-			points[pointCount] = point;
-			pointCount++;
+			points[ptC] = point;
+			ptC++;
 		}
-		else if ((info = sscanf(line, "n %f %f %f", &nx, &ny, &nz)) != 0) {
-			// add the normal data to the right point
-			points[normalCount].nx = nx;
-			points[normalCount].ny = ny;
-			points[normalCount].nz = nz;
-			normalCount++;
+		else if ((info = sscanf(line, "n %f %f %f", &nx, &ny, &nz)) != 0)
+		{
+			points[nmC].nx = nx;
+			points[nmC].ny = ny;
+			points[nmC].nz = nz;
+			nmC++;
 		}
 		else if ((info = sscanf(line, "g %s", objectName)) != 0)
 		{
-			//printf("%d %s\n", found, objectName);
+			#define colourDiffuse(c) forEach(i, 4) diffuseMaterial[i] = c[i]
 
-			if (objectCount == 0) {
-				diffuseMaterial[0] = yellow[0];
-				diffuseMaterial[1] = yellow[1];
-				diffuseMaterial[2] = yellow[2];
-				diffuseMaterial[3] = yellow[3];
-			}
-			else {
-				diffuseMaterial[0] = red[0];
-				diffuseMaterial[1] = red[1];
-				diffuseMaterial[2] = red[2];
-				diffuseMaterial[3] = red[3];
-			}
+			if (obC == 0) colourDiffuse(yellow);
+			else colourDiffuse(red);
 
-			objectCount++;
+			obC++;
 		}
-		else if ((info = sscanf(line, "%c ", &ch)) != 0 && ch == 'f') {
+		else if ((info = sscanf(line, "%c ", &ch)) != 0 && ch == 'f')
+		{
 			int f;
-			//printf("char %c\n", ch);
 			char *token;
 			token = strtok(line, " ");
 			ambientMaterial[0] = diffuseMaterial[0] * 0.2f;
@@ -337,49 +288,47 @@ GLint loadProps()
 			glColor4f(diffuseMaterial[0], diffuseMaterial[1], diffuseMaterial[2], diffuseMaterial[3]);
 			glBegin(GL_POLYGON);
 
-			while (token != NULL) {
+			while (token != NULL)
+			{
 				f = atoi(token);
-				if (f != 0) {
-					//printf(" %d %f %f %f\n", f,points[f - 1].x, points[f - 1].y,
-					//		points[f - 1].z);
+				if (f != 0)
+				{
 					glNormal3f(points[f - 1].nx, points[f - 1].ny, points[f - 1].nz);
 					glVertex3f(points[f - 1].x, points[f - 1].y, points[f - 1].z);
 				}
 				token = strtok(NULL, " ");
 			}
-			faceCount++;
+			fcC++;
 			glEnd();
 		}
 	}
 
 	glEndList();
 
-	//close file
 	fclose(file);
 
 	return propId;
 }
 
+// set values for the global light
 void initSun()
 {
-
-	// Set lighting values, self explanatory
 	glLightfv(GL_LIGHT0, GL_AMBIENT, sunAmbient);
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, sunDiffuse);
 	glLightfv(GL_LIGHT0, GL_SPECULAR, sunSpecular);
 	glLightfv(GL_LIGHT0, GL_POSITION, sunPos);
 
 	glShadeModel(GL_SMOOTH);
-	// Enable lighting
 	glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT0);
-	
-	GLfloat diffuseMaterial[4] = { 0.8, 0.8, 0.8, 1.0 };
-	GLfloat ambientMaterial[4] = { 0.3, 0.3, 0.3, 1.0 };
-	GLfloat specularMaterial[4] = { 0.9, 0.9, 0.9, 1.0 };
+
+	GLfloat diffuseMaterial[4] = { 0.0, 0.0, 0.0, 1.0 };
+	GLfloat ambientMaterial[4] = { 0.0, 0.0, 0.0, 1.0 };
+	GLfloat specularMaterial[4] = { 0.5, 0.5, 0.5, 1.0 };
 	GLfloat emissiveMaterial[4] = { 0.0, 0.0, 0.0, 1.0 };
+
 	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specularMaterial);
-	glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, new GLfloat { 1 });
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, new GLfloat{ 1 });
 	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuseMaterial);
 	glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emissiveMaterial);
 	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, ambientMaterial);
@@ -397,116 +346,174 @@ void initSea()
 	gluQuadricTexture(seaObj, GL_TRUE);
 }
 
-// Performs millions of years worth of geology in seconds
-void geologize(float map[75][75], int left, int right, int top, int bottom, int iteration)
+// performs millions of years worth of geology in an instant
+void geologize(float mesh[75][75], int left, int right, int top, int bottom, int iteration)
 {
-	if (iteration >= 8) {
-		return;
-	}
+	if (++iteration >= 8) return;
+
 	int width = right - left;
 	int height = bottom - top;
-	map[left + (width / 2)][top + (height / 2)] += (2 * (GLfloat)rand() / RAND_MAX) / (iteration);
-	map[left][top + (height / 2)]               += (2 * (GLfloat)rand() / RAND_MAX) / (iteration);
-	map[left + (width / 2)][top]                += (2 * (GLfloat)rand() / RAND_MAX) / (iteration);
-	map[left + (width - 1)][top + (height / 2)] += (2 * (GLfloat)rand() / RAND_MAX) / (iteration);
-	map[left + (width / 2)][top + (height - 1)] += (2 * (GLfloat)rand() / RAND_MAX) / (iteration);
 
-	iteration++;
+	mesh[left + (width / 2)][top + (height / 2)] += (2 * (GLfloat) rand() / RAND_MAX) / (iteration);
+	mesh[left][top + (height / 2)]               += (2 * (GLfloat) rand() / RAND_MAX) / (iteration);
+	mesh[left + (width / 2)][top]                += (2 * (GLfloat) rand() / RAND_MAX) / (iteration);
+	mesh[left + (width - 1)][top + (height / 2)] += (2 * (GLfloat) rand() / RAND_MAX) / (iteration);
+	mesh[left + (width / 2)][top + (height - 1)] += (2 * (GLfloat) rand() / RAND_MAX) / (iteration);
 
-	geologize(map, left, left + (width / 2), top, bottom - (height / 2), iteration);
-	geologize(map, left + (width / 2), right, top, bottom - (height / 2), iteration);
-	geologize(map, left, left + (width / 2), top + (height / 2), bottom, iteration);
-	geologize(map, left + (width / 2), right, top + (height / 2), bottom, iteration);
+	geologize(mesh, left , left + (width / 2) , top , bottom - (height / 2) , iteration);
+	geologize(mesh, left + (width / 2), right , top , bottom - (height / 2) , iteration);
+	geologize(mesh, left , left + (width / 2) , top + (height / 2) , bottom , iteration);
+	geologize(mesh, left + (width / 2), right , top + (height / 2) , bottom , iteration);
+}
+
+// basic normal calculation code
+Point calcNormal(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3)
+{
+	float ax, ay, az;
+	float bx, by, bz;
+	float nx, ny, nz;
+
+	ax = x2 - x1;
+	ay = y2 - y1;
+	az = z2 - z1;
+
+	bx = x3 - x1;
+	by = y3 - y1;
+	bz = z3 - z1;
+
+	nx = (ay * bz) - (az * by);
+	ny = (az * bx) - (ax * bz);
+	nz = (ax * by) - (ay * bx);
+
+	float length = sqrt(pow(nx, 2) + pow(ny, 2) + pow(nz, 2));
+
+	nx /= length;
+	ny /= length;
+	nz /= length;
+
+	Point normal = { x1, y1, z1, nx, ny, nz };
+
+	return normal;
+}
+
+// normals for the islands
+void calcVertexNormal(float mesh[75][75], int x, int z)
+{
+	Point topleft     = calcNormal(x, mesh[x][z], z, x , mesh[x][z - 1], z - 1, x - 1, mesh[x - 1][z], z);
+	Point topright    = calcNormal(x, mesh[x][z], z, x + 1, mesh[x + 1][z], z, x, mesh[x][z - 1], z - 1);
+	Point bottomleft  = calcNormal(x, mesh[x][z], z, x, mesh[x][z + 1], z + 1, x - 1, mesh[x - 1][z], z);
+	Point bottomright = calcNormal(x, mesh[x][z], z, x, mesh[x][z + 1], z + 1, x + 1, mesh[x + 1][z], z);
+
+	float nx = (topleft.nx + topright.nx + bottomleft.nx + bottomright.nx) / 4.0f;
+	float ny = (topleft.ny + topright.ny + bottomleft.ny + bottomright.ny) / 4.0f;
+	float nz = (topleft.nz + topright.nz + bottomleft.nz + bottomright.nz) / 4.0f;
+
+	glNormal3f(nx, ny, nz);
 }
 
 void initIslands()
 {
+	// create list for islands
 	landId = glGenLists(1);
 	glNewList(landId, GL_COMPILE);
-
-	//glBindTexture(GL_TEXTURE_2D, landTexture);
-
-	int i;
-	int numIslands = 5;
 
 	// angle and distance from origin for each island
 	float angle, distance;
 
-	//generate a certain number of islands
-	for (i = 0; i < numIslands; i++) {
+	// generate 5 islands
+	forEach(i, 5)
+	{
 		glPushMatrix();
-		angle = ((360 / numIslands) * i);
-		distance = 100 + 100 * (GLfloat) rand() / RAND_MAX;
+		angle = ((360 / 5) * i);
+		distance = 100 + 100 * (GLfloat) rand() / RAND_MAX; // between 100 and 200 units from origin
 
-		//move it down so edges are below sea
+		// hide the rectangular edges of the island below sea level
 		glTranslatef(0, -3, 0);
 
-		//glScalef(0.5f, 0.5f, 0.5f);
-		glScalef((20 + 130 * (GLfloat) rand() / RAND_MAX) / 100.0f, (20 + 130 * (GLfloat) rand() / RAND_MAX) / 100.0f, (20 + 130 * (GLfloat) rand() / RAND_MAX) / 100.0f);
+		// scale each island randomly in all 3 directions
+		glScalef
+		(
+			(50 + 100 * (GLfloat) rand() / RAND_MAX) / 100.0f,
+			(50 + 100 * (GLfloat) rand() / RAND_MAX) / 100.0f,
+			(50 + 100 * (GLfloat) rand() / RAND_MAX) / 100.0f
+		);
 
+		// move to where the island will be
 		glTranslatef(sin(angle) * distance, 0, cos(angle) * distance);
 		glTranslatef(-32, 0, -32);
 		
-		float map[75][75];
+		// height mesh
+		float mesh[75][75];
 
-		//initialize the heights to be in a cone-like shape based on distance from center
+		// initialize heights into a cone
 		forEach(x, 75)
 		{
 			forEach(z, 75)
 			{
-				float distance = sqrt((pow((75 / 2) - x, 2)) + (pow((75 / 2) - z, 2))) * 0.9f;
-				map[x][z] = ((75 / 2) - distance) / 2.0f;
-				if (map[x][z] < 0) map[x][z] = 0;
+				float distance = sqrt((pow(35 - x, 2)) + (pow(35 - z, 2))) * 0.9f;
+				mesh[x][z] = (35 - distance) / 2.0f;
+				if (mesh[x][z] < 0) mesh[x][z] = 0;
 			}
 		}
 
-		//recursively raise the island to give it peaks and valleys, ignore the edges
-		geologize(map, 1, 74, 1, 74, 1);
+		// recursive function to randomize heights of vertices
+		// in the mesh to give the island peaks and valleys
+        // (ignore edges by passing 1 and 74 as bounds instead of 0 and 75)
+		geologize(mesh, 1, 74, 1, 74, 0);
 
-		// change the outer edge to always be flat on the ground
+		// outer edges always flat
 		forEach(i, 75)
 		{
-			map[i][0] = 0.0;
-			map[i][74] = 0.0;
-			map[0][i] = 0.0;
-			map[74][i] = 0.0;
+			mesh[i][0] = 0.0;
+			mesh[i][74] = 0.0;
+			mesh[0][i] = 0.0;
+			mesh[74][i] = 0.0;
 		}
 
-		//glBindTexture(GL_TEXTURE_2D, landTexture);
-
-		//draw the island
+		// draw the island (to the gl list)
 		forEach(x, 74)
 		{
 			forEach(z, 74)
 			{
 				glBegin(GL_POLYGON);
 
-				//be default the normal is straight up (edges)
 				glNormal3f(0, 1, 0);
 
-				glColor3f(map[x][z+1], 1, map[x][z+1]);
-				//map coords of texture
+				//glColor3f(mesh[x][z+1], 1, mesh[x][z+1]);
+				glColor3f(1, 0, 0);
+
+				if (x != 0 && z != 0 && x != 74 && z !=74) calcVertexNormal(mesh, x, z + 1);
+
 				glTexCoord2f((x / 75), ((z + 1) / 75));
-				//draw vertex
-				glVertex3f(x , map[x][z + 1], z + 1);
+				glVertex3f(x , mesh[x][z + 1], z + 1);
 
-				//repeat for other 3 points of tile/quad/square
+				//glColor3f(map[x + 1][z + 1] / 150, 1, map[x + 1][z + 1] / 150);
+				glColor3f(1, 0, 0);
 
-				glColor3f(map[x + 1][z + 1] / 150, 1, map[x + 1][z + 1] / 150);
+				if (x != 0 && z != 0 && x != 74 && z != 74) calcVertexNormal(mesh, x + 1, z + 1);
+
 				glTexCoord2f(((x + 1) / 75), ((z + 1) / 75));
-				glVertex3f(x + 1, map[x + 1][z + 1], z + 1);
+				glVertex3f(x + 1, mesh[x + 1][z + 1], z + 1);
 
-				glColor3f(map[x + 1][z] / 150, 1, map[x + 1][z] / 150);
+				//glColor3f(map[x + 1][z] / 150, 1, map[x + 1][z] / 150);
+				glColor3f(1, 0, 0);
+
+				if (x != 0 && z != 0 && x != 74 && z != 74) calcVertexNormal(mesh, x + 1, z);
+
 				glTexCoord2f(((x + 1) / 75), (z / 75));
-				glVertex3f(x + 1 , map[x + 1][z], z);
+				glVertex3f(x + 1 , mesh[x + 1][z], z);
 				
-				glColor3f(map[x][z] / 150, 1, map[x][z] / 150);
+				//glColor3f(map[x][z] / 150, 1, map[x][z] / 150);
+				glColor3f(1, 0, 0);
+
+				if (x != 0 && z != 0 && x != 74 && z != 74) calcVertexNormal(mesh, x, z);
+
 				glTexCoord2f((x / 75), (z / 75));
-				glVertex3f(x, map[x][z], z);
+				glVertex3f(x, mesh[x][z], z);
 				glEnd();
 			}
 		}
-		glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+		//glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 		glPopMatrix();
 	}
 	glEndList();
@@ -551,7 +558,7 @@ void loadTexture(const char * filename, GLuint * ID)
 	// the last one was not a comment character '#', so we need to put it back into the file stream (undo)
 	ungetc(tempChar, fileID);
 
-	// read in the image hieght, width and the maximum value
+	// read in the image height, width and the maximum value
 	int maxValue;
 	fscanf(fileID, "%d %d %d", &imageWidth, &imageHeight, &maxValue);
 
@@ -574,6 +581,8 @@ void loadTexture(const char * filename, GLuint * ID)
 	// close the image file
 	fclose(fileID);
 
+	// create texture from image
+
 	glGenTextures(1, ID);
 	glBindTexture(GL_TEXTURE_2D, *ID);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
@@ -591,25 +600,25 @@ void loadTexture(const char * filename, GLuint * ID)
 
 void drawAxis()
 {
-	float lineLength = 7.0f;
+	float length = 5.0f;
 
 	glBegin(GL_LINES);
-	//x red
+
 	glColor3f(1, 0, 0);
 	glVertex3f(0, 0, 0);
-	glVertex3f(lineLength, 0, 0);
-	//y green
+	glVertex3f(length, 0, 0);
+
 	glColor3f(0, 1, 0);
 	glVertex3f(0, 0, 0);
-	glVertex3f(0, lineLength, 0);
-	//z blue
+	glVertex3f(0, length, 0);
+
 	glColor3f(0, 0, 1);
 	glVertex3f(0, 0, 0);
-	glVertex3f(0, 0, lineLength);
+	glVertex3f(0, 0, length);
 	glEnd();
-	//center sphere
+
 	glColor3f(1, 1, 1);
-	glutSolidSphere(0.3, 16, 16);
+	glutSolidSphere(0.2, 16, 16);
 }
 
 void drawGrid()
@@ -675,7 +684,7 @@ void drawSea()
 	GLfloat ambientMaterial[4] = { 0.2, 0.2, 0.4, 1.0 };
 	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, ambientMaterial);
 	glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, new GLfloat{ 50 });
-	glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, lightgreen);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, lgreen);
 	gluDisk(seaObj, 0, 510, 64, 64);
 }
 
@@ -760,9 +769,12 @@ void display(void)
 		{
 			glDisable(GL_CULL_FACE);
 			if (islandTex) glBindTexture(GL_TEXTURE_2D, landTexture);
+			else glDisable(GL_TEXTURE_2D);
+			glColor3f(1, 0, 0);
 
 			glCallList(landId);
 			glEnable(GL_CULL_FACE);
+			glEnable(GL_TEXTURE_2D);
 		}
 		
 		glPushMatrix();
