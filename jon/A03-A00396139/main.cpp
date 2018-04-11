@@ -484,7 +484,7 @@ void initIslands()
 
 				if (x != 0 && z != 0 && x != 74 && z !=74) calcVertexNormal(mesh, x, z + 1);
 
-				glTexCoord2f((GLfloat)(x / 75), ((GLfloat)(z + 1) / 75));
+				glTexCoord2f(((GLfloat)x / 75), ((GLfloat)(z + 1) / 75));
 				glVertex3f(x , mesh[x][z + 1], z + 1);
 
 				//glColor3f(map[x + 1][z + 1] / 150, 1, map[x + 1][z + 1] / 150);
@@ -492,7 +492,7 @@ void initIslands()
 
 				if (x != 0 && z != 0 && x != 74 && z != 74) calcVertexNormal(mesh, x + 1, z + 1);
 
-				glTexCoord2f(((GLfloat)(x + 1) / 75), ((GLfloat)(z + 1) / 75));
+				glTexCoord2f((((GLfloat)x + 1) / 75), ((GLfloat)(z + 1) / 75));
 				glVertex3f(x + 1, mesh[x + 1][z + 1], z + 1);
 
 				//glColor3f(map[x + 1][z] / 150, 1, map[x + 1][z] / 150);
@@ -769,10 +769,7 @@ void display(void)
 		if (drawIslands)
 		{
 			glDisable(GL_CULL_FACE);
-			if (islandTex)
-			{
-				glBindTexture(GL_TEXTURE_2D, landTexture);
-			}
+			if (islandTex) glBindTexture(GL_TEXTURE_2D, landTexture);
 			else glDisable(GL_TEXTURE_2D);
 
 			glCallList(landId);
@@ -942,7 +939,6 @@ int main(int argc, char **argv)
 
 	loadTexture("sea02.ppm", &seaTexture);
 	loadTexture("mount03.ppm", &landTexture);
-	//loadTexture("sky08.ppm", &landTexture);
 	loadTexture("sky08.ppm", &skyTexture);
 
 	loadCessna();

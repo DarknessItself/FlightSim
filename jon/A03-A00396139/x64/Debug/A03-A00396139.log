@@ -1,51 +1,49 @@
 ﻿  main.cpp
-c:\users\s7145103\flightsim\jon\a03-a00396139\main.cpp(15): warning C4305: 'initializing': truncation from 'double' to 'GLfloat'
-c:\users\s7145103\flightsim\jon\a03-a00396139\main.cpp(31): warning C4305: 'initializing': truncation from 'double' to 'GLfloat'
-c:\users\s7145103\flightsim\jon\a03-a00396139\main.cpp(63): warning C4838: conversion from 'double' to 'GLfloat' requires a narrowing conversion
-c:\users\s7145103\flightsim\jon\a03-a00396139\main.cpp(63): warning C4305: 'initializing': truncation from 'double' to 'GLfloat'
-c:\users\s7145103\flightsim\jon\a03-a00396139\main.cpp(69): warning C4838: conversion from 'double' to 'GLfloat' requires a narrowing conversion
-c:\users\s7145103\flightsim\jon\a03-a00396139\main.cpp(69): warning C4305: 'initializing': truncation from 'double' to 'GLfloat'
-c:\users\s7145103\flightsim\jon\a03-a00396139\main.cpp(71): warning C4838: conversion from 'double' to 'GLfloat' requires a narrowing conversion
-c:\users\s7145103\flightsim\jon\a03-a00396139\main.cpp(71): warning C4305: 'initializing': truncation from 'double' to 'GLfloat'
-c:\users\s7145103\flightsim\jon\a03-a00396139\main.cpp(72): warning C4838: conversion from 'double' to 'GLfloat' requires a narrowing conversion
-c:\users\s7145103\flightsim\jon\a03-a00396139\main.cpp(72): warning C4305: 'initializing': truncation from 'double' to 'GLfloat'
-c:\users\s7145103\flightsim\jon\a03-a00396139\main.cpp(75): warning C4838: conversion from 'double' to 'GLfloat' requires a narrowing conversion
-c:\users\s7145103\flightsim\jon\a03-a00396139\main.cpp(75): warning C4305: 'initializing': truncation from 'double' to 'GLfloat'
-c:\users\s7145103\flightsim\jon\a03-a00396139\main.cpp(76): warning C4838: conversion from 'double' to 'GLfloat' requires a narrowing conversion
-c:\users\s7145103\flightsim\jon\a03-a00396139\main.cpp(76): warning C4305: 'initializing': truncation from 'double' to 'GLfloat'
-c:\users\s7145103\flightsim\jon\a03-a00396139\main.cpp(400): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-c:\users\s7145103\flightsim\jon\a03-a00396139\main.cpp(401): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-c:\users\s7145103\flightsim\jon\a03-a00396139\main.cpp(402): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-c:\users\s7145103\flightsim\jon\a03-a00396139\main.cpp(403): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-c:\users\s7145103\flightsim\jon\a03-a00396139\main.cpp(427): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
-c:\users\s7145103\flightsim\jon\a03-a00396139\main.cpp(453): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-c:\users\s7145103\flightsim\jon\a03-a00396139\main.cpp(488): warning C4244: 'argument': conversion from 'int' to 'GLfloat', possible loss of data
-c:\users\s7145103\flightsim\jon\a03-a00396139\main.cpp(496): warning C4244: 'argument': conversion from 'int' to 'GLfloat', possible loss of data
-c:\users\s7145103\flightsim\jon\a03-a00396139\main.cpp(504): warning C4244: 'argument': conversion from 'int' to 'GLfloat', possible loss of data
-c:\users\s7145103\flightsim\jon\a03-a00396139\main.cpp(512): warning C4244: 'argument': conversion from 'int' to 'GLfloat', possible loss of data
-c:\users\s7145103\flightsim\jon\a03-a00396139\main.cpp(634): warning C4244: 'initializing': conversion from 'const GLfloat' to 'int', possible loss of data
-c:\users\s7145103\flightsim\jon\a03-a00396139\main.cpp(636): warning C4244: 'initializing': conversion from 'const GLfloat' to 'int', possible loss of data
-c:\users\s7145103\flightsim\jon\a03-a00396139\main.cpp(638): warning C4305: 'argument': truncation from 'double' to 'GLfloat'
-c:\users\s7145103\flightsim\jon\a03-a00396139\main.cpp(642): warning C4244: 'argument': conversion from 'int' to 'GLfloat', possible loss of data
-c:\users\s7145103\flightsim\jon\a03-a00396139\main.cpp(645): warning C4244: 'argument': conversion from 'int' to 'GLfloat', possible loss of data
-c:\users\s7145103\flightsim\jon\a03-a00396139\main.cpp(648): warning C4244: 'argument': conversion from 'int' to 'GLfloat', possible loss of data
-c:\users\s7145103\flightsim\jon\a03-a00396139\main.cpp(651): warning C4244: 'argument': conversion from 'int' to 'GLfloat', possible loss of data
-c:\users\s7145103\flightsim\jon\a03-a00396139\main.cpp(628): warning C4101: 'z': unreferenced local variable
-c:\users\s7145103\flightsim\jon\a03-a00396139\main.cpp(628): warning C4101: 'x': unreferenced local variable
-c:\users\s7145103\flightsim\jon\a03-a00396139\main.cpp(684): warning C4305: 'argument': truncation from 'double' to 'GLfloat'
-c:\users\s7145103\flightsim\jon\a03-a00396139\main.cpp(685): warning C4838: conversion from 'double' to 'GLfloat' requires a narrowing conversion
-c:\users\s7145103\flightsim\jon\a03-a00396139\main.cpp(685): warning C4305: 'initializing': truncation from 'double' to 'GLfloat'
-c:\users\s7145103\flightsim\jon\a03-a00396139\main.cpp(715): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
-c:\users\s7145103\flightsim\jon\a03-a00396139\main.cpp(857): warning C4305: '-=': truncation from 'double' to 'GLfloat'
-c:\users\s7145103\flightsim\jon\a03-a00396139\main.cpp(858): warning C4305: '+=': truncation from 'double' to 'GLfloat'
-c:\users\s7145103\flightsim\jon\a03-a00396139\main.cpp(859): warning C4305: '-=': truncation from 'double' to 'GLfloat'
-c:\users\s7145103\flightsim\jon\a03-a00396139\main.cpp(860): warning C4305: '+=': truncation from 'double' to 'GLfloat'
-c:\users\s7145103\flightsim\jon\a03-a00396139\main.cpp(862): warning C4305: '=': truncation from 'double' to 'GLfloat'
-c:\users\s7145103\flightsim\jon\a03-a00396139\main.cpp(863): warning C4305: '=': truncation from 'double' to 'GLfloat'
-c:\users\s7145103\flightsim\jon\a03-a00396139\main.cpp(901): warning C4305: '=': truncation from 'double' to 'GLfloat'
-c:\users\s7145103\flightsim\jon\a03-a00396139\main.cpp(903): warning C4305: '*=': truncation from 'double' to 'GLfloat'
-c:\users\s7145103\flightsim\jon\a03-a00396139\main.cpp(904): warning C4305: '*=': truncation from 'double' to 'GLfloat'
-c:\users\s7145103\flightsim\jon\a03-a00396139\main.cpp(906): warning C4244: '+=': conversion from 'double' to 'GLfloat', possible loss of data
-c:\users\s7145103\flightsim\jon\a03-a00396139\main.cpp(915): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
-  A03-A00396139.vcxproj -> C:\Users\s7145103\flightsim\jon\x64\Debug\A03-A00396139.exe
-  A03-A00396139.vcxproj -> C:\Users\s7145103\flightsim\jon\x64\Debug\A03-A00396139.pdb (Partial PDB)
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(15): warning C4305: 'initializing': truncation from 'double' to 'GLfloat'
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(31): warning C4305: 'initializing': truncation from 'double' to 'GLfloat'
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(63): warning C4838: conversion from 'double' to 'GLfloat' requires a narrowing conversion
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(63): warning C4305: 'initializing': truncation from 'double' to 'GLfloat'
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(69): warning C4838: conversion from 'double' to 'GLfloat' requires a narrowing conversion
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(69): warning C4305: 'initializing': truncation from 'double' to 'GLfloat'
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(71): warning C4838: conversion from 'double' to 'GLfloat' requires a narrowing conversion
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(71): warning C4305: 'initializing': truncation from 'double' to 'GLfloat'
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(72): warning C4838: conversion from 'double' to 'GLfloat' requires a narrowing conversion
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(72): warning C4305: 'initializing': truncation from 'double' to 'GLfloat'
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(75): warning C4838: conversion from 'double' to 'GLfloat' requires a narrowing conversion
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(75): warning C4305: 'initializing': truncation from 'double' to 'GLfloat'
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(76): warning C4838: conversion from 'double' to 'GLfloat' requires a narrowing conversion
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(76): warning C4305: 'initializing': truncation from 'double' to 'GLfloat'
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(400): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(401): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(402): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(403): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(427): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(453): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(488): warning C4244: 'argument': conversion from 'int' to 'GLfloat', possible loss of data
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(496): warning C4244: 'argument': conversion from 'int' to 'GLfloat', possible loss of data
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(504): warning C4244: 'argument': conversion from 'int' to 'GLfloat', possible loss of data
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(512): warning C4244: 'argument': conversion from 'int' to 'GLfloat', possible loss of data
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(35): warning C4244: 'initializing': conversion from 'const GLfloat' to 'int', possible loss of data
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(638): warning C4305: 'argument': truncation from 'double' to 'GLfloat'
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(642): warning C4244: 'argument': conversion from 'int' to 'GLfloat', possible loss of data
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(645): warning C4244: 'argument': conversion from 'int' to 'GLfloat', possible loss of data
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(648): warning C4244: 'argument': conversion from 'int' to 'GLfloat', possible loss of data
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(651): warning C4244: 'argument': conversion from 'int' to 'GLfloat', possible loss of data
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(628): warning C4101: 'z': unreferenced local variable
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(628): warning C4101: 'x': unreferenced local variable
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(684): warning C4305: 'argument': truncation from 'double' to 'GLfloat'
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(685): warning C4838: conversion from 'double' to 'GLfloat' requires a narrowing conversion
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(685): warning C4305: 'initializing': truncation from 'double' to 'GLfloat'
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(715): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(854): warning C4305: '-=': truncation from 'double' to 'GLfloat'
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(855): warning C4305: '+=': truncation from 'double' to 'GLfloat'
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(856): warning C4305: '-=': truncation from 'double' to 'GLfloat'
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(857): warning C4305: '+=': truncation from 'double' to 'GLfloat'
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(859): warning C4305: '=': truncation from 'double' to 'GLfloat'
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(860): warning C4305: '=': truncation from 'double' to 'GLfloat'
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(898): warning C4305: '=': truncation from 'double' to 'GLfloat'
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(900): warning C4305: '*=': truncation from 'double' to 'GLfloat'
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(901): warning C4305: '*=': truncation from 'double' to 'GLfloat'
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(903): warning C4244: '+=': conversion from 'double' to 'GLfloat', possible loss of data
+c:\users\s7145103\flightsim\flightsim\jon\a03-a00396139\main.cpp(912): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+  A03-A00396139.vcxproj -> C:\Users\s7145103\flightsim\FlightSim\jon\x64\Debug\A03-A00396139.exe
