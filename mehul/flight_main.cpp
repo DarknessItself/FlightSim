@@ -24,15 +24,15 @@ GLuint mountainTexture;
 
 
 // Where the camera is, where it's looking, how high in Y it is.
-GLfloat camPos[] = { 7.0,7.0,14.0};
-GLfloat camAt[] = { 0.0,0.0,0.0 };
-GLfloat camHeight = 10.0;
-GLfloat camAngle = -PI / 4;
+GLfloat cameraPosition[] = { 3.0,3.0,3.0};
+GLfloat cameraLookAt[] = { 0.0,0.0,0.0 };
+GLfloat cameraHeight = 5.0;
+GLfloat cameraAngle = -PI / 4;
 
 // Camera's velocity in XZ (trans.), Y, and XY (rot.)
-GLfloat camHVel = 0.002;
-GLfloat camVVel = 0.0;
-GLfloat camRotVel = 0.0;
+GLfloat cameraHVelocity = 0.002;
+GLfloat cameraVVelocity = 0.0;
+GLfloat cameraRotVelocity = 0.0;
 
 const GLfloat gridSize = 200.0f;
 
@@ -40,9 +40,9 @@ const GLfloat gridSize = 200.0f;
 bool wireframe = false;
 bool gridView = false;
 bool verticleMouseCtrl = true;
-bool fogToggle = false;
-bool drawMountain = false;
-bool mountainTextureToggle = false;
+bool fogToggle = true;
+bool drawMountain = true;
+bool mountainTextureToggle = true;
 bool fullscreenToggle = false;
 
 
@@ -62,14 +62,11 @@ GLUquadric *sky = gluNewQuadric();
 GLUquadric *sea = gluNewQuadric();
 
 // Light properties for skyLight
-GLfloat skyLightAmbient[]  = { 0.8, 0.8, 0.8 };
+GLfloat skyLightAmbient[]  = { 0.2, 0.2, 0.2 };
 GLfloat skyLightDiffuse[]  = { 1, 1, 1 };
 GLfloat skyLightSpecular[] = { 1, 1, 1 };
-GLfloat skyLightPosition[] = { 300, 300, 500, 1};
+GLfloat skyLightPosition[] = { 500, 250,500, 1};
 
-//GLfloat dull[]		     = { 1 };
-//GLfloat littleshiny[]    = { 10 };
-//GLfloat shiny[]		     = { 50 };
 
 // none vector to reset
 GLfloat none[]			 = { 0,0,0,0 };
@@ -88,17 +85,16 @@ typedef struct Point
 
 
 // color arrays for coloring objects in the scene
-typedef GLfloat color[4];
 
-color white			  = { 1.0, 1.0, 1.0, 1.0 };
-color grey			  = { 0.3, 0.3, 0.3, 1.0 };
-color black			  = { 0.0, 0.0, 0.0, 1.0 };
-color red			  = { 1.0, 0.0, 0.0, 1.0 };
-color green			  = { 0.0, 1.0, 0.0, 1.0 };
-color lightgreen	  = { 0.6, 0.8, 0.5, 1.0 };
-color blue			  = { 0.0, 0.0, 0.8, 1.0 };
-color yellow		  = { 0.8, 0.8, 0.0, 1.0 };
-color purple		  = { 0.7, 0.5, 0.9, 1.0 };
+GLfloat white[4]			  = { 1.0, 1.0, 1.0, 1.0 };
+GLfloat grey[4]				  = { 0.3, 0.3, 0.3, 1.0 };
+GLfloat black[4]			  = { 0.0, 0.0, 0.0, 1.0 };
+GLfloat red[4]				  = { 1.0, 0.0, 0.0, 1.0 };
+GLfloat green[4]			  = { 0.0, 1.0, 0.0, 1.0 };
+GLfloat lightgreen[4]		  = { 0.6, 0.8, 0.5, 1.0 };
+GLfloat blue[4]				  = { 0.0, 0.0, 0.8, 1.0 };
+GLfloat yellow[4]			  = { 0.8, 0.8, 0.0, 1.0 };
+GLfloat purple[4]			  = { 0.7, 0.5, 0.9, 1.0 };
 
 //Fog color
 GLfloat fogColor[4] = { 1.0, 0.6196, 0.6862, 0.30 };
@@ -168,7 +164,7 @@ GLint readCessna() {
 	
 	//material properties for Cessna
 	GLfloat diffuseMaterial[4] = { 0.0, 0.0, 0.0, 1.0 };
-	GLfloat ambientMaterial[4] = { 0.0, 0.0, 0.0, 1.0 };
+	GLfloat ambientMaterial[4] = { 0.3, 0.3, 0.3, 1.0 };
 	GLfloat specularMaterial[4] = { 1.0, 1.0, 1.0, 1.0 };//shiny plane
 
 	FILE * file;
@@ -215,6 +211,7 @@ GLint readCessna() {
 			
 
 			if (objectCount <= 3) {
+				
 				diffuseMaterial[0] = yellow[0];
 				diffuseMaterial[1] = yellow[1];
 				diffuseMaterial[2] = yellow[2];
@@ -283,15 +280,15 @@ GLint readCessna() {
 			token = strtok(line, " ");
 
 			// Material properties
-			ambientMaterial[0] = diffuseMaterial[0] * 0.4f;
-			ambientMaterial[1] = diffuseMaterial[1] * 0.4f;
-			ambientMaterial[2] = diffuseMaterial[2] * 0.4f;
+			ambientMaterial[0] = diffuseMaterial[0] * 0.2f;
+			ambientMaterial[1] = diffuseMaterial[1] * 0.2f;
+			ambientMaterial[2] = diffuseMaterial[2] * 0.2f;
 
 			//setting properties for the material
 			glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, ambientMaterial);
 			glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specularMaterial);
 			glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuseMaterial);
-			glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, none);
+			//glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, none);
 
 			glColor4f(diffuseMaterial[0], diffuseMaterial[1], diffuseMaterial[2], diffuseMaterial[3]);
 			
@@ -462,16 +459,18 @@ void initializeskyLight() {
 	glLightfv(GL_LIGHT0, GL_SPECULAR, skyLightSpecular);
 	glLightfv(GL_LIGHT0, GL_POSITION, skyLightPosition);
 
+
+
 	glShadeModel(GL_SMOOTH);
 
-	//enable GL states
-	glEnable(GL_LIGHTING);
-	glEnable(GL_LIGHT0);
-
+	GLfloat globalAmbientLight[] = { 0.4, 0.4, 0.4, 1.0 };
 	GLfloat diffuseMaterial[4] = { 0.0, 0.0, 0.0, 1.0 };
-	GLfloat ambientMaterial[4] = { 0.15, 0.15, 0.15, 1.0 };
-	GLfloat specularMaterial[4] = { 0.5, 0.5, 0.5, 1.0 };
+	GLfloat ambientMaterial[4] = { 0.05, 0.05, 0.05, 1.0 };
+	GLfloat specularMaterial[4] = { 0.7, 0.7, 0.7, 1.0 };
 	GLfloat emissiveMaterial[4] = { 0.0, 0.0, 0.0, 1.0 };
+
+	//global
+	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, globalAmbientLight);
 
 
 	// putting attributes to materials
@@ -482,6 +481,9 @@ void initializeskyLight() {
 	glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, new GLfloat{1});
 
 
+	//enable GL states
+	glEnable(GL_LIGHTING);
+	glEnable(GL_LIGHT0);
 
 
 
@@ -518,25 +520,24 @@ void initializing_sea() {
 
 // random hieghts for mountains:
 
-void randomHeiight(float mesh[90][90], int passes, int top, int bottom, int left, int right) {
-	if (++passes >= 9) {
-		return;
-	}
 
-	int height = top - bottom;
-	int width =  right - left;
+void randomHeight(float mesh[90][90], int passes, int left, int right, int top, int bottom)
+{
+	if (++passes >= 6) return;
+
+	int width = right - left;
+	int height = bottom - top;
 
 	mesh[left + (width / 2)][top + (height / 2)] += (2 * (GLfloat)rand() / RAND_MAX) / (passes);
 	mesh[left][top + (height / 2)] += (2 * (GLfloat)rand() / RAND_MAX) / (passes);
 	mesh[left + (width / 2)][top] += (2 * (GLfloat)rand() / RAND_MAX) / (passes);
-	mesh[left + (width / 2)][top + (height - 1)] += (2 * (GLfloat)rand() / RAND_MAX) / (passes);
 	mesh[left + (width - 1)][top + (height / 2)] += (2 * (GLfloat)rand() / RAND_MAX) / (passes);
-	
+	mesh[left + (width / 2)][top + (height - 1)] += (2 * (GLfloat)rand() / RAND_MAX) / (passes);
 
-	randomHeiight(mesh, left, left + (width / 2), top, bottom - (height / 2), passes);
-	randomHeiight(mesh, left + (width / 2), right, top, bottom - (height / 2), passes);
-	randomHeiight(mesh, left + (width / 2), right, top + (height / 2), bottom, passes);
-	randomHeiight(mesh, left, left + (width / 2), top + (height / 2), bottom, passes);
+	randomHeight(mesh, left, left + (width / 2), top, bottom - (height / 2), passes);
+	randomHeight(mesh, left + (width / 2), right, top, bottom - (height / 2), passes);
+	randomHeight(mesh, left, left + (width / 2), top + (height / 2), bottom, passes);
+	randomHeight(mesh, left + (width / 2), right, top + (height / 2), bottom, passes);
 }
 
 // calculate normals for mountains:
@@ -574,30 +575,31 @@ void initializing_Mountains() {
 		glPushMatrix();
 		
 		//mountains created at a random distance between 75 and 225 units
-		originDistance = 75 + 150 * (GLfloat)rand() / RAND_MAX; 
+		originDistance = 100 + 150 * (GLfloat)rand() / RAND_MAX; 
 		angle = ((365 / 4)  * i);
 
-		//sink the mountains for realistic effect:
-		glTranslatef(0, -5, 0);
+		
 
 		//Scale mountains
-		glScalef((40 + 100 * (GLfloat)rand() / RAND_MAX) / 100.0f,
-				(40 + 100 * (GLfloat)rand() / RAND_MAX) / 100.0f,
-				(40 + 100 * (GLfloat)rand() / RAND_MAX) / 100.0f
+		glScalef((30 + 100 * (GLfloat)rand() / RAND_MAX) / 100.0f,
+				(30 + 100 * (GLfloat)rand() / RAND_MAX) / 100.0f,
+				(30 + 100 * (GLfloat)rand() / RAND_MAX) / 100.0f
 		);
 
 		//get to mountain origin location
 
 		glTranslatef(sin(angle) * originDistance, 0, cos(angle) * originDistance);
-		glTranslatef(-40, 0, -40);
+		
+		//sink the mountains for realistic effect:
+		glTranslatef(-10, 0, -10);
 
 		float mesh[90][90];
 
 		//initialize height
 		forEvery(x, 90) {
 			forEvery(z, 90) {
-				GLfloat distance = sqrt((pow(20 - x, 2)) + sqrt((pow(20 - z, 2)))) * 0.9f;
-				mesh[x][z] = (20 - distance) / 2.0f;
+				GLfloat distance = sqrt((pow(45 - x, 2)) + sqrt((pow(45 - z, 2)))) * 0.9f;
+				mesh[x][z] = (45 - distance) / 2.0f;
 				if (mesh[x][z] < 0) mesh[x][z] = 0;
 			}
 
@@ -613,7 +615,7 @@ void initializing_Mountains() {
 		}
 
 		//giving random vertices heights to get slopes to different parts of mountains
-		randomHeiight(mesh, 1, 89, 1, 89, 0); //within mesh bounds to avoid edges
+		randomHeight(mesh, 0, 1, 89, 1, 89); //within mesh bounds to avoid edges
 
 		//drawing the mountain
 
@@ -694,7 +696,7 @@ void readTexture(const char * filename, GLuint * ID) {
 	if ((headerLine[0] != 'P') || (headerLine[1] != '3'))
 	{
 		printf("Selected file not a PPM file.\n");
-		exit(0);
+		//exit(0);
 	}
 	fscanf(fileID, "%c", &tempChar);
 	
@@ -875,16 +877,20 @@ void drawPropellers()
 
 void drawPlane()
 {
+	
 	glPushMatrix();
 	// move to where the enterprise will be drawn; in front of the camera
-	glTranslatef(camPos[0] + (5 * sin(camAngle)), camAt[1] - .6 + 6.5 * camVVel, camPos[2] - (5 * cos(camAngle)));
-	glScalef(0.75f, 0.75f, 0.75f);// scaling plane bigger
-	glRotatef((180 / PI * -camAngle) - 90, 0, 1, 0); // orient the cessna to face away from the camera
-	glTranslatef(-150 * camHVel, 0, -50 * camRotVel);
-	glRotatef(-2000 * camRotVel, 0, 1, 0); // rotation
-	glRotatef(-7500 * camRotVel, 1, 0, 0); // banking
-	glRotatef(-800 * camVVel, 0, 0, 1); // up/ down
+	glTranslatef(cameraPosition[0] + (5 * sin(cameraAngle)), cameraLookAt[1] - .6 + 6.5 * cameraVVelocity, cameraPosition[2] - (5 * cos(cameraAngle)));
+	glScalef(1.4f, 1.4f, 1.4f);// scaling plane bigger
+	glRotatef((180 / PI * -cameraAngle) - 90, 0, 1, 0); // orient the cessna to face away from the camera
+	glTranslatef(-150 * cameraHVelocity, 0, -50 * cameraRotVelocity);
+	glRotatef(-2000 * cameraRotVelocity, 0, 1, 0); // rotation
+	glRotatef(-7500 * cameraRotVelocity, 1, 0, 0); // banking
+	glRotatef(-800 * cameraVVelocity, 0, 0, 1); // up/ down
+	
 	glEnable(GL_COLOR_MATERIAL);
+
+	//glMaterialfv(GL_FRONT, GL_SPECULAR, specular);
 	glColorMaterial(GL_FRONT, GL_DIFFUSE);
 	glCallList(cessnaID);
 	glDisable(GL_COLOR_MATERIAL);
@@ -894,6 +900,9 @@ void drawPlane()
 
 
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///													Display                                                             ///
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void display(void)
 {
@@ -902,8 +911,8 @@ void display(void)
 	glLoadIdentity();
 
 	// set the camera position
-	gluLookAt(camPos[0], camPos[1], camPos[2],
-		camAt[0], camAt[1], camAt[2],
+	gluLookAt(cameraPosition[0], cameraPosition[1], cameraPosition[2],
+		cameraLookAt[0], cameraLookAt[1], cameraLookAt[2],
 		0, 1, 0);
 
 	initializeskyLight();
@@ -965,17 +974,22 @@ void display(void)
 	glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, black);
 	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, white);
 
+	
 	drawPlane();
-
+	
 	
 	glutSwapBuffers();
 }
 
-void moveCamH(GLfloat amount)
+void moveCameraH(GLfloat amount)
 {
-	camPos[0] -= amount * (camPos[0] - camAt[0]);
-	camPos[2] -= amount * (camPos[2] - camAt[2]);
+	cameraPosition[0] -= amount * (cameraPosition[0] - cameraLookAt[0]);
+	cameraPosition[2] -= amount * (cameraPosition[2] - cameraLookAt[2]);
 }
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///													Keys                                                              ///
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void key(unsigned char key, int x, int y)
 {
@@ -986,10 +1000,10 @@ void key(unsigned char key, int x, int y)
 			glPolygonMode(GL_FRONT_AND_BACK, wireframe ? GL_LINE : GL_FILL);
 			break;
 		case 'k':
-			camHVel -= 0.0002;
+			cameraHVelocity -= 0.0002;
 			break;
 		case 'l':
-			camHVel += 0.0002;
+			cameraHVelocity += 0.0002;
 			break;
 		case 'v':
 			verticleMouseCtrl = !verticleMouseCtrl;
@@ -1013,6 +1027,9 @@ void key(unsigned char key, int x, int y)
 		case 'm':
 			drawMountain = !drawMountain;
 			break;
+		case 'q':
+			exit(0);
+			break;
 
 	}
 }
@@ -1026,16 +1043,19 @@ void sKey(int key, int x, int y)
 	// add to or subtract from velocities and ensure they don't exceed bounds
 	//if (key == GLUT_KEY_LEFT) camRotVel -= .0001;
 	//if (key == GLUT_KEY_RIGHT) camRotVel += .0001;
-	if (key == GLUT_KEY_DOWN) camVVel -= .005;
-	if (key == GLUT_KEY_UP) camVVel += .005;
+	if (key == GLUT_KEY_DOWN) cameraVVelocity -= .005;
+	if (key == GLUT_KEY_UP) cameraVVelocity += .005;
 	
 
-	if (camHVel > 0.01) camHVel = 0.01;
-	else if (camHVel < 0.004) camHVel = 0.004;
+	if (cameraHVelocity > 0.01) cameraHVelocity = 0.01;
+	else if (cameraHVelocity < 0.004) cameraHVelocity = 0.004;
 
 	
 }
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///													Reshape                                                              ///
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void myReshape(int w, int h)
 {
@@ -1047,39 +1067,43 @@ void myReshape(int w, int h)
 	w_Width = w, w_Height = w;
 }
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///													Idle                                                              ///
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void idle()
 {
 	// move the camera according to it's velocity, and decrease it's speed
-	moveCamH(camHVel);
+	moveCameraH(cameraHVelocity);
 
-	camAngle += camRotVel;
+	cameraAngle += cameraRotVelocity;
 
-	camHeight += camVVel;
-	camPos[1] = camHeight;
+	cameraHeight += cameraVVelocity;
+	cameraPosition[1] = cameraHeight;
 
 	// update where the camera is looking
-	camAt[0] = camPos[0] + (10 * sin(camAngle));
-	camAt[1] = camHeight + 30 *camVVel;
-	camAt[2] = camPos[2] - (10 * cos(camAngle));
+	cameraLookAt[0] = cameraPosition[0] + (10 * sin(cameraAngle));
+	cameraLookAt[1] = cameraHeight + 30 *cameraVVelocity;
+	cameraLookAt[2] = cameraPosition[2] - (10 * cos(cameraAngle));
 
 
-	camVVel *= 0.989;
+	cameraVVelocity *= 0.989;
 
-	camRotVel += -(GLfloat)(w_Width / 2 - mouseX) / 10000000;
-	if (verticleMouseCtrl) camVVel += ((GLfloat)w_Height / 3 - mouseY) / 3000000;
+	cameraRotVelocity += -(GLfloat)(w_Width / 2 - mouseX) / 5000000;
+	if (verticleMouseCtrl) cameraVVelocity += ((GLfloat)w_Height / 3 - mouseY) / 150000;
 
 	// can bank harder when going slower
-	if (abs(camRotVel) > 0.003 + 0.00001 / camHVel) camRotVel *= (1 - 200 * camHVel * abs(camRotVel));
+	if (abs(cameraRotVelocity) > 0.003 + 0.00001 / cameraHVelocity) cameraRotVelocity *= (1 - 200 * cameraHVelocity * abs(cameraRotVelocity));
 
-	if (camVVel > 7.5 * camHVel) camVVel *= (1 - (GLfloat)camVVel / 25);
-	else if (camVVel < -.1) camVVel = -.1;
+	if (cameraVVelocity > 7.5 * cameraHVelocity) cameraVVelocity *= (1 - (GLfloat)cameraVVelocity / 25);
+	else if (cameraVVelocity < -.1) cameraVVelocity = -.1;
 
-	camVVel *= 0.989;
-	camRotVel *= 0.990;
+	cameraVVelocity *= 0.989;
+	cameraRotVelocity *= 0.990;
 
 
 
-	propellerRotation += 3200 * camHVel;
+	propellerRotation += 3200 * cameraHVelocity;
 
 	if (propellerRotation >= 360) propellerRotation = 0;
 
@@ -1087,6 +1111,11 @@ void idle()
 
 	glutPostRedisplay();
 }
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///													Main                                                              ///
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 int main(int argc, char **argv)
 {
@@ -1161,6 +1190,8 @@ int main(int argc, char **argv)
 	printf("n :\tInitialize Mountain\n");
 	printf("m :\tDraw Mountains\n");
 	printf("t :\tToggle Mountain Texture\n");
+	printf("\n\nQuit \n----------------\n\n");
+	printf("q :\tQuit\n");
 
 
 	glutMainLoop();
